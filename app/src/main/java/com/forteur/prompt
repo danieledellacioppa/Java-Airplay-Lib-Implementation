@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Nome del file di output
+output_file="SimpleAirdrodcast.txt"
+# Svuota il file di output se esiste già
+> "$output_file"
+
+# Contatore dei file inclusi
+count=1
+
+# Itera su ogni file nella cartella corrente
+for file in *; do
+    # Salta il file di output se esiste nella stessa cartella
+    if [[ "$file" == "$output_file" ]]; then
+        continue
+    fi
+
+    # Controlla se è un file regolare
+    if [[ -f "$file" ]]; then
+        # Chiede conferma per l'inclusione del file
+        read -p "Vuoi includere il file \"$file\"? (digita n o no per saltare il file): " response
+        if [[ "$response" == "n" || "$response" == "no" ]]; then
+            echo "File \"$file\" saltato."
+        else
+            echo "Ecco il nome del file numero $count:" >> "$output_file"
+            echo "--- $file ---" >> "$output_file"
+            echo "Contenuto del file numero $count:" >> "$output_file"
+            echo "---" >> "$output_file"
+            cat "$file" >> "$output_file"
+            echo -e "\n--- Fine del contenuto del file numero $count ---\n" >> "$output_file"
+            ((count++))
+        fi
+    fi
+done
+
+echo "Tutti i file selezionati sono stati inclusi in $output_file"

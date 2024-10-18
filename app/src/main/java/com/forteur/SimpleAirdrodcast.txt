@@ -1,0 +1,258 @@
+Ecco il nome del file numero 1:
+--- AirPlayBonjour.java ---
+Contenuto del file numero 1:
+---
+package com.forteur;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.jmdns.JmmDNS;
+import javax.jmdns.ServiceInfo;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Registers airplay/airtunes service mdns
+ */
+public class AirPlayBonjour {
+
+    private static final Logger log = LoggerFactory.getLogger(AirPlayBonjour.class);
+
+    private static final String AIRPLAY_SERVICE_TYPE = "._airplay._tcp.local";
+    private static final String AIRTUNES_SERVICE_TYPE = "._raop._tcp.local";
+
+    private final String serverName;
+
+    private ServiceInfo airPlayService;
+    private ServiceInfo airTunesService;
+
+    public AirPlayBonjour(String serverName) {
+        this.serverName = serverName;
+    }
+
+    public void start(int airPlayPort, int airTunesPort) throws Exception {
+        airPlayService = ServiceInfo.create(serverName + AIRPLAY_SERVICE_TYPE,
+                serverName, airPlayPort, 0, 0, airPlayMDNSProps());
+        JmmDNS.Factory.getInstance().registerService(airPlayService);
+        log.info("{} service is registered on port {}", serverName + AIRPLAY_SERVICE_TYPE, airPlayPort);
+
+        String airTunesServerName = "010203040506@" + serverName;
+        airTunesService = ServiceInfo.create(airTunesServerName + AIRTUNES_SERVICE_TYPE,
+                airTunesServerName, airTunesPort, 0, 0, airTunesMDNSProps());
+        JmmDNS.Factory.getInstance().registerService(airTunesService);
+        log.info("{} service is registered on port {}", airTunesServerName + AIRTUNES_SERVICE_TYPE, airTunesPort);
+    }
+
+    public void stop() {
+        JmmDNS.Factory.getInstance().unregisterService(airPlayService);
+        log.info("{} service is unregistered", airPlayService.getName());
+        JmmDNS.Factory.getInstance().unregisterService(airTunesService);
+        log.info("{} service is unregistered", airTunesService.getName());
+    }
+
+    private Map<String, String> airPlayMDNSProps() {
+        HashMap<String, String> airPlayMDNSProps = new HashMap<>();
+        airPlayMDNSProps.put("deviceid", "01:02:03:04:05:06");
+        airPlayMDNSProps.put("features", "0x5A7FFFF7,0x1E");
+        airPlayMDNSProps.put("srcvers", "220.68");
+        airPlayMDNSProps.put("flags", "0x4");
+        airPlayMDNSProps.put("vv", "2");
+        airPlayMDNSProps.put("model", "AppleTV2,1");
+        airPlayMDNSProps.put("rhd", "5.6.0.0");
+        airPlayMDNSProps.put("pw", "false");
+        airPlayMDNSProps.put("pk", "b07727d6f6cd6e08b58ede525ec3cdeaa252ad9f683feb212ef8a205246554e7");
+        airPlayMDNSProps.put("pi", "2e388006-13ba-4041-9a67-25dd4a43d536");
+        return airPlayMDNSProps;
+    }
+
+    private Map<String, String> airTunesMDNSProps() {
+        HashMap<String, String> airTunesMDNSProps = new HashMap<>();
+        airTunesMDNSProps.put("ch", "2");
+        airTunesMDNSProps.put("cn", "0,1,2,3");
+        airTunesMDNSProps.put("da", "true");
+        airTunesMDNSProps.put("et", "0,3,5");
+        airTunesMDNSProps.put("vv", "2");
+        airTunesMDNSProps.put("ft", "0x5A7FFFF7,0x1E");
+        airTunesMDNSProps.put("am", "AppleTV2,1");
+        airTunesMDNSProps.put("md", "0,1,2");
+        airTunesMDNSProps.put("rhd", "5.6.0.0");
+        airTunesMDNSProps.put("pw", "false");
+        airTunesMDNSProps.put("sr", "44100");
+        airTunesMDNSProps.put("ss", "16");
+        airTunesMDNSProps.put("sv", "false");
+        airTunesMDNSProps.put("tp", "UDP");
+        airTunesMDNSProps.put("txtvers", "1");
+        airTunesMDNSProps.put("sf", "0x4");
+        airTunesMDNSProps.put("vs", "220.68");
+        airTunesMDNSProps.put("vn", "65537");
+        airTunesMDNSProps.put("pk", "b07727d6f6cd6e08b58ede525ec3cdeaa252ad9f683feb212ef8a205246554e7");
+        return airTunesMDNSProps;
+    }
+}
+--- Fine del contenuto del file numero 1 ---
+
+Ecco il nome del file numero 2:
+--- AirPlayRtspServer.kt ---
+Contenuto del file numero 2:
+---
+package com.forteur
+
+import android.util.Log
+import com.github.serezhka.jap2lib.AirPlay
+//import com.github.serezhka.jap2lib.AirPlayBonjour
+import java.io.*
+import java.net.ServerSocket
+import java.net.Socket
+
+class AirPlayRtspServer(private val serverName: String, private val airPlayPort: Int, private val airTunesPort: Int) {
+
+    private var serverSocket: ServerSocket? = null
+    private var isRunning = false
+    private val airPlay = AirPlay() // Instanzia l'oggetto AirPlay
+    private lateinit var airPlayBonjour: AirPlayBonjour
+
+    // Avvia il server RTSP e il servizio Bonjour
+    fun startServer() {
+        airPlayBonjour = AirPlayBonjour(serverName)
+        airPlayBonjour.start(airPlayPort, airTunesPort)
+        Log.d(TAG, "Bonjour service started with server name: $serverName on ports $airPlayPort and $airTunesPort")
+
+        isRunning = true
+        Thread {
+            try {
+                serverSocket = ServerSocket(airPlayPort)
+                Log.d(TAG, "RTSP Server started on port $airPlayPort")
+
+                while (isRunning) {
+                    val clientSocket = serverSocket?.accept()
+                    clientSocket?.let {
+                        handleClient(it)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error in RTSP Server: ${e.message}")
+            }
+        }.start()
+    }
+
+    // Gestisci il client che si connette
+    private fun handleClient(clientSocket: Socket) {
+        Thread {
+            try {
+                val reader = clientSocket.getInputStream()
+                val writer = clientSocket.getOutputStream()
+                handleRtspRequest(reader, writer)
+                clientSocket.close()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error handling client: ${e.message}")
+            }
+        }.start()
+    }
+
+    // Gestisci le richieste RTSP
+    private fun handleRtspRequest(inputStream: InputStream, outputStream: OutputStream) {
+        val reader = BufferedReader(InputStreamReader(inputStream))
+        val requestLine = reader.readLine() ?: return
+        Log.d(TAG, "Received RTSP request: $requestLine")
+
+        val uri = requestLine.split(" ")[1]
+        val requestContent = inputStream.readBytes()
+
+        when (uri) {
+            "/info" -> {
+                airPlay.info(outputStream)
+                sendRtspOk(outputStream)
+            }
+            "/pair-setup" -> {
+                airPlay.pairSetup(outputStream)
+                sendRtspOk(outputStream)
+            }
+            "/pair-verify" -> {
+                airPlay.pairVerify(ByteArrayInputStream(requestContent), outputStream)
+                sendRtspOk(outputStream)
+            }
+            "/fp-setup" -> {
+                airPlay.fairPlaySetup(ByteArrayInputStream(requestContent), outputStream)
+                sendRtspOk(outputStream)
+            }
+            "/feedback" -> {
+                sendRtspOk(outputStream)
+            }
+            else -> {
+                Log.w(TAG, "Unknown RTSP request: $uri")
+                sendRtspNotImplemented(outputStream)
+            }
+        }
+    }
+
+    // RTSP setup per video e audio
+    fun setupRtsp(inputStream: InputStream, outputStream: OutputStream, videoDataPort: Int, videoEventPort: Int, videoTimingPort: Int, audioDataPort: Int, audioControlPort: Int) {
+        airPlay.rtspSetupEncryption(inputStream)
+        airPlay.rtspSetupVideo(outputStream, videoDataPort, videoEventPort, videoTimingPort)
+        airPlay.rtspSetupAudio(outputStream, audioDataPort, audioControlPort)
+
+        if (airPlay.isFairPlayVideoDecryptorReady()) {
+            Log.d(TAG, "FairPlay Video Decryptor is ready, start listening on videoDataPort $videoDataPort")
+            // Avvia la ricezione dati video
+        }
+
+        if (airPlay.isFairPlayAudioDecryptorReady()) {
+            Log.d(TAG, "FairPlay Audio Decryptor is ready, start listening on audioDataPort $audioDataPort")
+            // Avvia la ricezione dati audio
+        }
+    }
+
+    private fun sendRtspOk(outputStream: OutputStream) {
+        val response = "RTSP/1.0 200 OK\r\nCSeq: 1\r\n\r\n"
+        outputStream.write(response.toByteArray())
+    }
+
+    private fun sendRtspNotImplemented(outputStream: OutputStream) {
+        val response = "RTSP/1.0 501 Not Implemented\r\nCSeq: 1\r\n\r\n"
+        outputStream.write(response.toByteArray())
+    }
+
+    fun stopServer() {
+        airPlayBonjour.stop()
+        isRunning = false
+        serverSocket?.close()
+        Log.d(TAG, "RTSP Server and Bonjour service stopped")
+    }
+
+    companion object {
+        private const val TAG = "AirPlayRtspServer"
+    }
+}
+--- Fine del contenuto del file numero 2 ---
+
+Ecco il nome del file numero 3:
+--- MainActivity.kt ---
+Contenuto del file numero 3:
+---
+package com.forteur
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+
+class MainActivity : ComponentActivity() {
+
+    private lateinit var airPlayRtspServer: AirPlayRtspServer
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Avvia il server RTSP con Bonjour
+        airPlayRtspServer = AirPlayRtspServer("@srzhka", 5001, 7001)
+        airPlayRtspServer.startServer()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Ferma il server RTSP e Bonjour
+        airPlayRtspServer.stopServer()
+    }
+}
+--- Fine del contenuto del file numero 3 ---
+
