@@ -11,7 +11,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Avvia il server RTSP con Bonjour
-        airPlayRtspServer = AirPlayRtspServer("@akhter", 5001, 7001)
+        airPlayRtspServer = AirPlayRtspServer("@prova", 5001, 7001)
         airPlayRtspServer.startServer()
     }
 
