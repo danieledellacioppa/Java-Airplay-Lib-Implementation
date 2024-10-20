@@ -4,7 +4,6 @@ import com.github.serezhka.jap2lib.AirPlay;
 import com.github.serezhka.jap2lib.AirPlayBonjour;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -16,14 +15,16 @@ public class AirPlayServer {
     private final int airPlayPort;
     private final int airTunesPort;
     private final AirPlay airPlay;
+    private final AirplayDataConsumerImpl dataConsumer; // Aggiunto il dataConsumer
     private AirPlayBonjour airPlayBonjour;
     private ServerSocket rtspServerSocket;
 
-    public AirPlayServer(String serverName, int airPlayPort, int airTunesPort) {
+    public AirPlayServer(String serverName, int airPlayPort, int airTunesPort, AirplayDataConsumerImpl dataConsumer) {
         this.serverName = serverName;
         this.airPlayPort = airPlayPort;
         this.airTunesPort = airTunesPort;
         this.airPlay = new AirPlay();
+        this.dataConsumer = dataConsumer;  // Salva il dataConsumer
     }
 
     public void start() throws Exception {
@@ -74,6 +75,25 @@ public class AirPlayServer {
                     break;
                 case "/fp-setup":
                     airPlay.fairPlaySetup(new ByteArrayInputStream(requestContent), outputStream);
+                    sendRtspOk(outputStream);
+                    break;
+                case "/feedback":
+                    sendRtspOk(outputStream);
+                    break;
+                case "/play":  // Esempio di richiesta per iniziare la riproduzione
+                    // Esegui l'azione di setup RTSP per ricevere audio/video
+                    airPlay.rtspSetup(new ByteArrayInputStream(requestContent), outputStream, 7002, 7003, 7004, 7005, 7006);
+                    // Invio il contenuto ricevuto a dataConsumer
+                    if (airPlay.isFairPlayVideoDecryptorReady()) {
+                        // Esempio: ricevi dati video e inviali a dataConsumer
+                        byte[] videoData = new byte[1024];  // Esempio di dati video, sostituisci con quelli veri
+                        dataConsumer.onVideo(videoData);
+                    }
+                    if (airPlay.isFairPlayAudioDecryptorReady()) {
+                        // Esempio: ricevi dati audio e inviali a dataConsumer
+                        byte[] audioData = new byte[1024];  // Esempio di dati audio, sostituisci con quelli veri
+                        dataConsumer.onAudio(audioData);
+                    }
                     sendRtspOk(outputStream);
                     break;
                 default:

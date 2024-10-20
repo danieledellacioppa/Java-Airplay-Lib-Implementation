@@ -1,25 +1,29 @@
 package org.example;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
 public class Main {
+    public static void main(String[] args) throws Exception {
+        AirplayDataConsumerImpl dataConsumer = new AirplayDataConsumerImpl();
 
-    public static void main(String[] args) {
-        String serverName = "@srzhkaOnMac";
-        int airPlayPort = 5001;
-        int airTunesPort = 7001;
+        String serverName = "AirPlayServer";
+        int airPlayPort = 15614;
+        int airTunesPort = 5001;
 
-        AirPlayServer airPlayServer = new AirPlayServer(serverName, airPlayPort, airTunesPort);
-        try {
-            airPlayServer.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
+        // Avvia il server con il data consumer
+        AirPlayServer airPlayServer = new AirPlayServer(serverName, airPlayPort, airTunesPort, dataConsumer);
+        airPlayServer.start();
+
+        // Aggiungi un modo per fermare e chiudere i file quando il server si ferma
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                airPlayServer.stop();
-            } catch (Exception e) {
+                dataConsumer.closeChannels();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        }));
     }
 }
