@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         mAudioPlayer = new AudioPlayer();
         mAudioPlayer.start();
 
-        airPlayServer = new AirPlayServer("caicao", 7000, 49152, airplayDataConsumer);
+        airPlayServer = new AirPlayServer("AKHTERpanel", 7000, 49152, airplayDataConsumer);
 
         new Thread(new Runnable() {
             @Override
