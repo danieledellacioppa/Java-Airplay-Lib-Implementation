@@ -38,6 +38,12 @@ class RTSP {
     private byte[] eiv;
 
     MediaStreamInfo getMediaStreamInfo(InputStream rtspSetupPayload) throws Exception {
+        if (rtspSetupPayload.available() == 0) {
+            log.error("RTSP setup payload is empty");
+            Log.d(TAG, "getMediaStreamInfo: RTSP setup payload is empty");
+            return null;
+        }
+        try {
         NSDictionary rtspSetup = (NSDictionary) BinaryPropertyListParser.parse(rtspSetupPayload);
         if (rtspSetup.containsKey("streams")) {
             // assume one stream info per RTSP SETUP request
@@ -78,6 +84,10 @@ class RTSP {
             }
         } else {
             Log.w(TAG, "getMediaStreamInfo: other type");
+        }
+
+        } catch (Exception e) {
+        log.error("Failed to parse RTSP setup payload", e);
         }
         return null;
     }
