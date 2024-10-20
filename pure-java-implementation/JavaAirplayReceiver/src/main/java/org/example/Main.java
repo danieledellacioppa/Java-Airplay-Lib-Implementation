@@ -5,7 +5,7 @@ package org.example;
 public class Main {
 
     public static void main(String[] args) {
-        String serverName = "@srzhkaOnMacco";
+        String serverName = "@srzhkaOnMak";
         int airPlayPort = 5001;
         int airTunesPort = 7001;
 
