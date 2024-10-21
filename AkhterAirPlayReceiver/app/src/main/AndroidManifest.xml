@@ -12,7 +12,7 @@
         android:name="com.cjx.airplayjavademo.MyApplication"
         android:allowBackup="true"
         android:icon="@drawable/airplayakhter"
-        android:label="@string/app_name"
+        android:label="Akhter Airplay"
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
