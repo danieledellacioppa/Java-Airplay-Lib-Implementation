@@ -1,5 +1,7 @@
 package com.github.serezhka.jap2server.internal;
 
+import android.util.Log;
+
 import com.github.serezhka.jap2server.internal.handler.mirroring.MirroringHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -24,6 +26,7 @@ public class MirroringReceiver implements Runnable {
 
     private final int port;
     private final MirroringHandler mirroringHandler;
+    private static final String TAG = "MirroringReceiver";
 
     public MirroringReceiver(int port, MirroringHandler mirroringHandler) {
         this.port = port;
@@ -51,11 +54,14 @@ public class MirroringReceiver implements Runnable {
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             ChannelFuture channelFuture = serverBootstrap.bind().sync();
 //            log.info("Mirroring receiver listening on port: {}", port);
+            Log.d(TAG, "Mirroring receiver listening on port: " + port);
             channelFuture.channel().closeFuture().sync();
         } catch (InterruptedException e) {
 //            log.info("Mirroring receiver interrupted");
+            Log.e(TAG, "Mirroring receiver interrupted", e);
         } finally {
 //            log.info("Mirroring receiver stopped");
+            Log.e(TAG, "Mirroring receiver stopped");
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
