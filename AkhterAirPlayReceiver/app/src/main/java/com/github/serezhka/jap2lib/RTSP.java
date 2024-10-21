@@ -38,57 +38,76 @@ class RTSP {
     private byte[] eiv;
 
     MediaStreamInfo getMediaStreamInfo(InputStream rtspSetupPayload) throws Exception {
-        if (rtspSetupPayload.available() == 0) {
-            log.error("RTSP setup payload is empty");
-            Log.d(TAG, "getMediaStreamInfo: RTSP setup payload is empty");
+        // Verifica iniziale della disponibilità di dati nello stream
+        if (rtspSetupPayload == null || rtspSetupPayload.available() == 0) {
+            log.error("RTSP setup payload is empty or null");
+            Log.d(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null");
             return null;
         }
+
         try {
-        NSDictionary rtspSetup = (NSDictionary) BinaryPropertyListParser.parse(rtspSetupPayload);
-        if (rtspSetup.containsKey("streams")) {
-            // assume one stream info per RTSP SETUP request
-            HashMap stream = (HashMap) ((Object[]) rtspSetup.get("streams").toJavaObject())[0];
-            int type = (int) stream.get("type");
-            switch (type) {
+            // Log della disponibilità di dati nello stream
+            log.info("Available bytes in RTSP setup payload: {}", rtspSetupPayload.available());
 
-                // video
-                case 110:
-                    Log.i(TAG, "video plist: " + rtspSetup.toXMLPropertyList());
+            // Parsing del payload RTSP
+            NSDictionary rtspSetup = (NSDictionary) BinaryPropertyListParser.parse(rtspSetupPayload);
+            log.info("Parsed RTSP setup payload: {}", rtspSetup.toXMLPropertyList());
 
-                    if (stream.containsKey("streamConnectionID")) {
-                        streamConnectionID = Long.toUnsignedString((long) stream.get("streamConnectionID"));
-                    }
-                    return new VideoStreamInfo(streamConnectionID);
+            if (rtspSetup.containsKey("streams")) {
+                // Assumiamo che ci sia solo un stream info per richiesta RTSP SETUP
+                HashMap<String, Object> stream = (HashMap<String, Object>) ((Object[]) rtspSetup.get("streams").toJavaObject())[0];
+                int type = (int) stream.get("type");
 
-                // audio
-                case 96:
-                    Log.i(TAG, "audio plist: " + rtspSetup.toXMLPropertyList());
+                // Controlla il tipo di stream (video o audio)
+                switch (type) {
+                    case 110:  // Video stream
+                        log.info("Video stream detected");
 
-                    AudioStreamInfo.AudioStreamInfoBuilder builder = new AudioStreamInfo.AudioStreamInfoBuilder();
-                    if (stream.containsKey("ct")) {
-                        int compressionType = (int) stream.get("ct");
-                        builder.compressionType(AudioStreamInfo.CompressionType.fromCode(compressionType));
-                    }
-                    if (stream.containsKey("audioFormat")) {
-                        long audioFormatCode = (int) stream.get("audioFormat"); // FIXME int or long ?!
-                        builder.audioFormat(AudioStreamInfo.AudioFormat.fromCode(audioFormatCode));
-                    }
-                    if (stream.containsKey("spf")) {
-                        int samplesPerFrame = (int) stream.get("spf");
-                        builder.samplesPerFrame(samplesPerFrame);
-                    }
-                    return builder.build();
+                        // Log dei dettagli sullo stream video
+                        if (stream.containsKey("streamConnectionID")) {
+                            streamConnectionID = Long.toUnsignedString((long) stream.get("streamConnectionID"));
+                            log.info("Video streamConnectionID: {}", streamConnectionID);
+                        }
+                        return new VideoStreamInfo(streamConnectionID);
 
-                default:
-                    log.error("Unknown stream type: {}", type);
+                    case 96:   // Audio stream
+                        log.info("Audio stream detected");
+
+                        // Costruzione delle informazioni audio dal payload
+                        AudioStreamInfo.AudioStreamInfoBuilder builder = new AudioStreamInfo.AudioStreamInfoBuilder();
+                        if (stream.containsKey("ct")) {
+                            int compressionType = (int) stream.get("ct");
+                            builder.compressionType(AudioStreamInfo.CompressionType.fromCode(compressionType));
+                            log.info("Audio compressionType: {}", compressionType);
+                        }
+                        if (stream.containsKey("audioFormat")) {
+                            long audioFormatCode = (int) stream.get("audioFormat");  // FIXME: Verifica se int o long
+                            builder.audioFormat(AudioStreamInfo.AudioFormat.fromCode(audioFormatCode));
+                            log.info("Audio format: {}", audioFormatCode);
+                        }
+                        if (stream.containsKey("spf")) {
+                            int samplesPerFrame = (int) stream.get("spf");
+                            builder.samplesPerFrame(samplesPerFrame);
+                            log.info("Samples per frame: {}", samplesPerFrame);
+                        }
+                        return builder.build();
+
+                    default:
+                        log.error("Unknown stream type: {}", type);
+                        break;
+                }
+            } else {
+                log.warn("RTSP setup does not contain 'streams' key. Payload: {}", rtspSetup.toXMLPropertyList());
             }
-        } else {
-            Log.w(TAG, "getMediaStreamInfo: other type");
+
+        } catch (ClassCastException e) {
+            log.error("Error casting RTSP setup stream data: {}", e.getMessage(), e);
+        } catch (IOException e) {
+            log.error("IO error while parsing RTSP setup payload: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Failed to parse RTSP setup payload: {}", e.getMessage(), e);
         }
 
-        } catch (Exception e) {
-        log.error("Failed to parse RTSP setup payload", e);
-        }
         return null;
     }
 
