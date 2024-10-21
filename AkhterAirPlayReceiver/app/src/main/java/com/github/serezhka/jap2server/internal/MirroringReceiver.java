@@ -15,14 +15,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 
 public class MirroringReceiver implements Runnable {
-
-//    private static final Logger log = LoggerFactory.getLogger(MirroringHandler.class);
 
     private final int port;
     private final MirroringHandler mirroringHandler;
@@ -38,6 +34,8 @@ public class MirroringReceiver implements Runnable {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         EventLoopGroup bossGroup = eventLoopGroup();
         EventLoopGroup workerGroup = eventLoopGroup();
+        ChannelFuture channelFuture = null;
+
         try {
             serverBootstrap
                     .group(bossGroup, workerGroup)
@@ -52,16 +50,28 @@ public class MirroringReceiver implements Runnable {
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.SO_REUSEADDR, true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
-            ChannelFuture channelFuture = serverBootstrap.bind().sync();
-//            log.info("Mirroring receiver listening on port: {}", port);
+
+            channelFuture = serverBootstrap.bind().sync();
             Log.d(TAG, "Mirroring receiver listening on port: " + port);
+
+            // Attende la chiusura del canale
             channelFuture.channel().closeFuture().sync();
         } catch (InterruptedException e) {
-//            log.info("Mirroring receiver interrupted");
             Log.e(TAG, "Mirroring receiver interrupted", e);
+            Thread.currentThread().interrupt(); // Interrompe il thread corrente
         } finally {
-//            log.info("Mirroring receiver stopped");
             Log.e(TAG, "Mirroring receiver stopped");
+            // Chiudere la connessione in modo sicuro
+            if (channelFuture != null && channelFuture.channel().isOpen()) {
+                try {
+                    channelFuture.channel().close().sync();
+                    Log.d(TAG, "Channel closed successfully.");
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Failed to close the channel", e);
+                    Thread.currentThread().interrupt(); // Interrompe il thread corrente
+                }
+            }
+            // Chiudere i gruppi di eventi
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
