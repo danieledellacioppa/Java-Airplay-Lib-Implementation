@@ -36,7 +36,10 @@ fun VideoDisplayComposable(
 
 @Composable
 fun LogDisplayComposable() {
-    val logMessages = remember { LogRepository.getLogs() }
+    // Usa remember e derive lo stato dai log del LogRepository
+    val logMessages by remember {
+        derivedStateOf { LogRepository.logs }
+    }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(logMessages.size) { index ->

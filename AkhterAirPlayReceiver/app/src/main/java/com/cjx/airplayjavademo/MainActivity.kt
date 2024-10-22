@@ -5,15 +5,13 @@ import android.util.Log
 import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.cjx.airplayjavademo.compose.VideoDisplayComposable
 import com.cjx.airplayjavademo.model.NALPacket
 import com.cjx.airplayjavademo.model.PCMPacket
 import com.cjx.airplayjavademo.player.AudioPlayer
 import com.cjx.airplayjavademo.player.VideoPlayer
 import com.cjx.airplayjavademo.tools.LogRepository
+import com.cjx.airplayjavademo.tools.LogRepository.isConnectionActive
 import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo
 import com.github.serezhka.jap2server.AirPlayServer
@@ -55,17 +53,12 @@ import java.util.LinkedList
  * This activity sets up and manages the AirPlay server for mirroring video and audio streams, while ensuring the
  * proper lifecycle management of video and audio resources.
  */
-
-
-
-
 class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private lateinit var airPlayServer: AirPlayServer
     private var mVideoPlayer: VideoPlayer? = null
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
-    private var isConnectionActive by mutableStateOf(false)
 
     companion object {
         private const val TAG = "MainActivity"

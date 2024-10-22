@@ -15,6 +15,8 @@ import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
+
 import java.net.InetSocketAddress;
 
 /**
@@ -76,6 +78,8 @@ public class MirroringReceiver implements Runnable {
         ServerBootstrap serverBootstrap;
         ChannelFuture channelFuture = null;
 
+        LogRepository.INSTANCE.addLog("Mirroring receiver started...");
+
         do {
             EventLoopGroup bossGroup = eventLoopGroup();
             EventLoopGroup workerGroup = eventLoopGroup();
@@ -96,26 +100,30 @@ public class MirroringReceiver implements Runnable {
                         .childOption(ChannelOption.SO_REUSEADDR, true)
                         .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-                // Avvia il server e attende la chiusura del canale
                 channelFuture = serverBootstrap.bind().sync();
                 Log.d(TAG, "Mirroring receiver listening on port: " + port);
+                LogRepository.INSTANCE.addLog("Listening on port: " + port);
+                LogRepository.INSTANCE.updateConnectionStatus(true);
 
-                // Attende che il canale si chiuda
+                // Attende la chiusura del canale
                 channelFuture.channel().closeFuture().sync();
-                break; // Esce dal ciclo se il canale si chiude correttamente
+                break;
 
             } catch (InterruptedException e) {
                 Log.e(TAG, "Mirroring receiver interrupted during bind or sync", e);
+                LogRepository.INSTANCE.addLog("Connection interrupted.");
+                LogRepository.INSTANCE.updateConnectionStatus(false);
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
                 Log.e(TAG, "Error during server setup", e);
+                LogRepository.INSTANCE.addLog("Error during server setup.");
             } finally {
-                Log.d(TAG, "Mirroring receiver stopped or failed. Cleaning up...");
                 closeChannel(channelFuture);
                 bossGroup.shutdownGracefully();
                 workerGroup.shutdownGracefully();
+                LogRepository.INSTANCE.updateConnectionStatus(false);
+                LogRepository.INSTANCE.addLog("Mirroring receiver stopped.");
             }
-
         } while (retryAttempts++ < maxRetryAttempts && handleReconnection());
     }
 
