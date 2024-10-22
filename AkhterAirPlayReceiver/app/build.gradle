@@ -1,6 +1,9 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+    id 'kotlin-parcelize'
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" // Assicurati di usare la versione corretta di Kotlin
 }
 
 android {
@@ -16,12 +19,21 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    buildFeatures {
+        compose true
+    }
+
+    composeCompiler {
+        reportsDestination = layout.buildDirectory.dir("compose_compiler_reports")
+        // Puoi anche rimuovere stabilityConfigurationFile o configurarlo correttamente se richiesto
+    }
+
     packagingOptions {
         resources {
             excludes += ['META-INF/INDEX.LIST', 'META-INF/io.netty.versions.properties']
         }
     }
-
 
     buildTypes {
         release {
@@ -29,12 +41,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-//
-//    configurations.all {
-//        resolutionStrategy {
-//            force 'org.slf4j:slf4j-api:1.7.36'
-//        }
-//    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -46,27 +52,30 @@ android {
 }
 
 dependencies {
+    // Jetpack Compose dependencies
+    implementation "androidx.compose.ui:ui:1.7.4"
+    implementation "androidx.compose.ui:ui-tooling:1.7.4"
+    implementation "androidx.compose.foundation:foundation:1.7.4"
+    implementation "androidx.compose.material:material:1.7.4"
+    implementation "androidx.activity:activity-compose:1.9.3"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.6"
 
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    // Altre dipendenze
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.core:core-ktx:1.13.1'
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 
-
-    // airplay
-    implementation 'org.jmdns:jmdns:3.5.7'
+    // AirPlay-related dependencies
+    implementation 'org.jmdns:jmdns:3.5.12'
     implementation 'com.googlecode.plist:dd-plist:1.23'
     implementation 'net.i2p.crypto:eddsa:0.3.0'
     implementation 'org.whispersystems:curve25519-java:0.5.0'
-    // netty has slf4j
-//    implementation 'io.netty:netty-all:4.1.77.Final'
     implementation ('io.netty:netty-all:4.1.77.Final'){
         exclude group: 'org.slf4j:slf4j-api'
     }
-//    implementation 'org.slf4j:slf4j-api:1.7.36'
     implementation 'org.slf4j:slf4j-simple:1.7.25'
-//    implementation 'ch.qos.reload4j:reload4j:1.2.19'
 }

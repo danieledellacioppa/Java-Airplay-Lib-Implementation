@@ -16,9 +16,55 @@ import com.github.serezhka.jap2server.AirplayDataConsumer
 import airplayjavademo.R
 import java.util.LinkedList
 
-class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
 
-    private lateinit var mSurfaceView: SurfaceView
+/**
+ * # MainActivity
+ *
+ * The `MainActivity` class handles the initialization of the AirPlay server for mirroring video and audio
+ * streams from an iOS device to an Android device. It sets up a SurfaceView to display the video content
+ * and uses custom AudioPlayer and VideoPlayer classes to manage the playback.
+ *
+ * The activity starts the AirPlay server and listens for incoming mirroring data via the `AirplayDataConsumer` interface,
+ * which processes video and audio streams.
+ *
+ * ## Main Features
+ * - Initializes and starts the AirPlay server.
+ * - Uses a `SurfaceView` for video display.
+ * - Handles video and audio streams using `VideoPlayer` and `AudioPlayer`.
+ * - Caches incoming video packets when the player is not ready and plays them once ready.
+ *
+ * ## Lifecycle Management
+ * - `onCreate(Bundle?)`: Initializes the SurfaceView and AirPlay server, and starts audio playback.
+ * - `onStop()`: Stops the AirPlay server and releases resources.
+ *
+ * ## Surface Callbacks
+ * - `surfaceCreated(SurfaceHolder)`: Currently unused.
+ * - `surfaceChanged(SurfaceHolder, int, int, int)`: Initializes the `VideoPlayer` when the Surface is available and starts video playback.
+ * - `surfaceDestroyed(SurfaceHolder)`: Currently unused.
+ *
+ * ## AirplayDataConsumer
+ * - `onVideo(ByteArray)`: Receives video data packets, caches them if the video player is not ready, and adds them to the player once it is ready.
+ * - `onVideoFormat(VideoStreamInfo)`: Receives video format information (currently unused).
+ * - `onAudio(ByteArray)`: Receives audio data packets and adds them to the audio player.
+ * - `onAudioFormat(AudioStreamInfo)`: Receives audio format information (currently unused).
+ *
+ * ## Usage
+ * This activity sets up and manages the AirPlay server for mirroring video and audio streams, while ensuring the
+ * proper lifecycle management of video and audio resources.
+ */
+
+
+
+
+class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
+
     private lateinit var airPlayServer: AirPlayServer
     private var mVideoPlayer: VideoPlayer? = null
     private var mAudioPlayer: AudioPlayer? = null
@@ -30,10 +76,9 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        mSurfaceView = findViewById(R.id.surfaceView)
-        mSurfaceView.holder.addCallback(this)
+        setContent {
+            VideoDisplayComposable()
+        }
 
         mAudioPlayer = AudioPlayer().apply {
             start()
@@ -107,5 +152,19 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         // Not needed at the moment
+    }
+
+    @Composable
+    fun VideoDisplayComposable() {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AndroidView(
+                factory = { context ->
+                    SurfaceView(context).apply {
+                        holder.addCallback(this@MainActivity)
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 }
