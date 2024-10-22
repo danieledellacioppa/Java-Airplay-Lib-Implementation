@@ -3,8 +3,9 @@ package com.cjx.airplayjavademo
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
-import android.view.SurfaceView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import com.cjx.airplayjavademo.compose.VideoDisplayComposable
 import com.cjx.airplayjavademo.model.NALPacket
 import com.cjx.airplayjavademo.model.PCMPacket
 import com.cjx.airplayjavademo.player.AudioPlayer
@@ -13,16 +14,7 @@ import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo
 import com.github.serezhka.jap2server.AirPlayServer
 import com.github.serezhka.jap2server.AirplayDataConsumer
-import airplayjavademo.R
 import java.util.LinkedList
-
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
 
 /**
  * # MainActivity
@@ -77,7 +69,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            VideoDisplayComposable()
+            VideoDisplayComposable(this@MainActivity)
         }
 
         mAudioPlayer = AudioPlayer().apply {
@@ -154,17 +146,4 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         // Not needed at the moment
     }
 
-    @Composable
-    fun VideoDisplayComposable() {
-        Box(modifier = Modifier.fillMaxSize()) {
-            AndroidView(
-                factory = { context ->
-                    SurfaceView(context).apply {
-                        holder.addCallback(this@MainActivity)
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-    }
 }
