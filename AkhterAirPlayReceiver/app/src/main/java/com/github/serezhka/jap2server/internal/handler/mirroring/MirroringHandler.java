@@ -9,6 +9,47 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * <h1 style="color: #2e6c80;">MirroringHandler</h1>
+ *
+ * <p style="font-size: 1.1em; color: #555555;">
+ * The <strong>MirroringHandler</strong> class is responsible for managing and handling incoming mirroring data over the AirPlay protocol.
+ * This class processes <code>ByteBuf</code> messages, decrypts video streams, and forwards the data to the
+ * <strong>AirplayDataConsumer</strong> for playback.
+ * </p>
+ *
+ * <h2 style="color: #3a79a1;">Main Features</h2>
+ * <ul>
+ *   <li>Processes AirPlay mirroring data, interpreting payload headers and content.</li>
+ *   <li>Decrypts video data and forwards it to the data consumer.</li>
+ *   <li>Handles SPS/PPS data for video stream configuration.</li>
+ * </ul>
+ *
+ * <h2 style="color: #3a79a1;">Methods</h2>
+ * <ul>
+ *   <li><strong>channelRead0(ChannelHandlerContext ctx, ByteBuf msg)</strong>: Handles incoming <code>ByteBuf</code> messages, processes headers, and manages video/audio payloads.</li>
+ *   <li><strong>processVideo(byte[] payload)</strong>: Processes and structures NAL units from the video payload and forwards them to the consumer.</li>
+ *   <li><strong>processSPSPPS(ByteBuf payload)</strong>: Processes SPS and PPS data from the payload and prepares it for video configuration.</li>
+ * </ul>
+ *
+ * <h2 style="color: #3a79a1;">Payload Types</h2>
+ * <ul>
+ *   <li><strong>0</strong>: Video data that needs decryption and processing.</li>
+ *   <li><strong>1</strong>: SPS/PPS data required for configuring the video stream.</li>
+ * </ul>
+ *
+ * <h2 style="color: #3a79a1;">Usage</h2>
+ * <p style="font-size: 1.1em; color: #555555;">
+ * This class is used in a Netty pipeline for handling real-time AirPlay mirroring streams. It ensures proper decoding and forwarding
+ * of video and SPS/PPS data to a media player or data consumer.
+ * </p>
+ *
+ * <h2 style="color: #3a79a1;">Parameters</h2>
+ * <ul>
+ *   <li><strong>airPlay</strong>: The <strong>AirPlay</strong> instance used for decrypting video data.</li>
+ *   <li><strong>dataConsumer</strong>: The <strong>AirplayDataConsumer</strong> instance responsible for processing the video data.</li>
+ * </ul>
+ */
 public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private static final Logger log = LoggerFactory.getLogger(MirroringHandler.class);
@@ -20,6 +61,12 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private MirroringHeader header;
     private ByteBuf payload;
 
+    /**
+     * Creates a new MirroringHandler instance with the specified AirPlay instance and data consumer.
+     *
+     * @param airPlay The AirPlay instance used for decrypting video data.
+     * @param dataConsumer The AirplayDataConsumer instance that processes the video data.
+     */
     public MirroringHandler(AirPlay airPlay, AirplayDataConsumer dataConsumer) {
         this.airPlay = airPlay;
         this.dataConsumer = dataConsumer;
