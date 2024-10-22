@@ -21,7 +21,7 @@ import java.util.LinkedList;
 
 import airplayjavademo.R;
 
-public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+public class oldMainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
     private SurfaceView mSurfaceView;
     private AirPlayServer airPlayServer;
