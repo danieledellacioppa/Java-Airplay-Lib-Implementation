@@ -5,11 +5,15 @@ import android.util.Log
 import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.cjx.airplayjavademo.compose.VideoDisplayComposable
 import com.cjx.airplayjavademo.model.NALPacket
 import com.cjx.airplayjavademo.model.PCMPacket
 import com.cjx.airplayjavademo.player.AudioPlayer
 import com.cjx.airplayjavademo.player.VideoPlayer
+import com.cjx.airplayjavademo.tools.LogRepository
 import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo
 import com.github.serezhka.jap2server.AirPlayServer
@@ -61,6 +65,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var mVideoPlayer: VideoPlayer? = null
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
+    private var isConnectionActive by mutableStateOf(false)
 
     companion object {
         private const val TAG = "MainActivity"
@@ -69,8 +74,9 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            VideoDisplayComposable(this@MainActivity)
+            VideoDisplayComposable(this@MainActivity, isConnectionActive)
         }
+        LogRepository.addLog("onCreate: MainActivity initialized.")
 
         mAudioPlayer = AudioPlayer().apply {
             start()
@@ -98,6 +104,12 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private val airplayDataConsumer = object : AirplayDataConsumer {
         override fun onVideo(video: ByteArray) {
+            // Imposta lo stato della connessione attiva quando i primi pacchetti video sono ricevuti
+            if (!isConnectionActive) {
+                isConnectionActive = true
+                Log.d(TAG, "Connection active: received first video packet.")
+            }
+
             val nalPacket = NALPacket().apply {
                 nalData = video
             }
@@ -113,10 +125,16 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
 
         override fun onVideoFormat(videoStreamInfo: VideoStreamInfo) {
-            // Implement if needed
+            // Potresti usare anche questo punto per rilevare la connessione
         }
 
         override fun onAudio(audio: ByteArray) {
+            // Anche qui puoi impostare lo stato della connessione
+            if (!isConnectionActive) {
+                isConnectionActive = true
+                Log.d(TAG, "Connection active: received first audio packet.")
+            }
+
             val pcmPacket = PCMPacket().apply {
                 data = audio
             }
