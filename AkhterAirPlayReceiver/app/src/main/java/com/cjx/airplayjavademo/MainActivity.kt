@@ -14,6 +14,7 @@ import com.cjx.airplayjavademo.model.PCMPacket
 import com.cjx.airplayjavademo.player.AudioPlayer
 import com.cjx.airplayjavademo.player.VideoPlayer
 import com.cjx.airplayjavademo.tools.LogRepository
+import com.cjx.airplayjavademo.tools.LogRepository.isConnectionActive
 import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo
 import com.github.serezhka.jap2server.AirPlayServer
@@ -65,7 +66,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var mVideoPlayer: VideoPlayer? = null
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
-    private var isConnectionActive by mutableStateOf(false)
+//    private var isConnectionActive by mutableStateOf(false)
 
     companion object {
         private const val TAG = "MainActivity"
@@ -161,7 +162,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        // Not needed at the moment
+        Log.d(TAG, "surfaceDestroyed: Surface destroyed.")
     }
 
 }

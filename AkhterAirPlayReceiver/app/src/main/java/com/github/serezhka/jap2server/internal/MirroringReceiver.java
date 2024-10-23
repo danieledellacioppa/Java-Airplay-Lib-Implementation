@@ -1,6 +1,8 @@
 package com.github.serezhka.jap2server.internal;
 
 import android.util.Log;
+
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2server.internal.handler.mirroring.MirroringHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -107,6 +109,7 @@ public class MirroringReceiver implements Runnable {
             } catch (InterruptedException e) {
                 Log.e(TAG, "Mirroring receiver interrupted during bind or sync", e);
                 Thread.currentThread().interrupt();
+                LogRepository.INSTANCE.setConnection(false);
             } catch (Exception e) {
                 Log.e(TAG, "Error during server setup", e);
             } finally {
