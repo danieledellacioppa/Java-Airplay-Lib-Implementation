@@ -1,5 +1,7 @@
 package com.github.serezhka.jap2server.internal.handler.audio;
 
+import android.util.Log;
+
 import com.github.serezhka.jap2lib.AirPlay;
 import com.github.serezhka.jap2server.AirplayDataConsumer;
 import io.netty.buffer.ByteBuf;
@@ -14,6 +16,7 @@ import java.util.Arrays;
 public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private static final Logger log = LoggerFactory.getLogger(AudioHandler.class);
+    private static final String TAG = "AudioHandler";
 
     private final AirPlay airPlay;
     private final AirplayDataConsumer dataConsumer;
@@ -31,46 +34,94 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
     }
 
+//    @Override
+//    protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
+//        ByteBuf content = msg.content();
+//
+//        byte[] headerBytes = new byte[12];
+//        content.readBytes(headerBytes);
+//
+//        int flag = headerBytes[0] & 0xFF;
+//        int type = headerBytes[1] & 0x7F;
+//
+//        int curSeqNo = ((headerBytes[2] & 0xFF) << 8) | (headerBytes[3] & 0xFF);
+//
+//        long timestamp = (headerBytes[7] & 0xFF) | ((headerBytes[6] & 0xFF) << 8) |
+//                ((headerBytes[5] & 0xFF) << 16) | ((headerBytes[4] & 0xFF) << 24);
+//
+//        long ssrc = (headerBytes[11] & 0xFF) | ((headerBytes[6] & 0xFF) << 8) |
+//                ((headerBytes[9] & 0xFF) << 16) | ((headerBytes[8] & 0xFF) << 24);
+//
+//        // TODO handle bad cases (missing packets, curSeqNum - prevSeqNum > buffer.length, ...)
+//        if (curSeqNo <= prevSeqNum) {
+//            return;
+//        }
+//
+//        log.debug("Got audio packet. flag: {}, type: {}, prevSeqNum: {}, curSecNum: {}, audio packets in buffer: {}",
+//                flag, type, prevSeqNum, curSeqNo, packetsInBuffer);
+//
+//        AudioPacket audioPacket = buffer[curSeqNo % buffer.length];
+//        audioPacket
+//                .flag(flag)
+//                .type(type)
+//                .sequenceNumber(curSeqNo)
+//                .timestamp(timestamp)
+//                .ssrc(ssrc)
+//                .available(true)
+//                .encodedAudioSize(content.readableBytes())
+//                .encodedAudio(packet -> content.readBytes(packet, 0, content.readableBytes()));
+//        packetsInBuffer++;
+//
+//        while (dequeue(curSeqNo)) {
+//            curSeqNo++;
+//        }
+//    }
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
         ByteBuf content = msg.content();
 
-        byte[] headerBytes = new byte[12];
-        content.readBytes(headerBytes);
+        try {
+            byte[] headerBytes = new byte[12];
+            content.readBytes(headerBytes);
 
-        int flag = headerBytes[0] & 0xFF;
-        int type = headerBytes[1] & 0x7F;
+            int flag = headerBytes[0] & 0xFF;
+            int type = headerBytes[1] & 0x7F;
 
-        int curSeqNo = ((headerBytes[2] & 0xFF) << 8) | (headerBytes[3] & 0xFF);
+            int curSeqNo = ((headerBytes[2] & 0xFF) << 8) | (headerBytes[3] & 0xFF);
 
-        long timestamp = (headerBytes[7] & 0xFF) | ((headerBytes[6] & 0xFF) << 8) |
-                ((headerBytes[5] & 0xFF) << 16) | ((headerBytes[4] & 0xFF) << 24);
+            long timestamp = (headerBytes[7] & 0xFF) | ((headerBytes[6] & 0xFF) << 8) |
+                    ((headerBytes[5] & 0xFF) << 16) | ((headerBytes[4] & 0xFF) << 24);
 
-        long ssrc = (headerBytes[11] & 0xFF) | ((headerBytes[6] & 0xFF) << 8) |
-                ((headerBytes[9] & 0xFF) << 16) | ((headerBytes[8] & 0xFF) << 24);
+            long ssrc = (headerBytes[11] & 0xFF) | ((headerBytes[6] & 0xFF) << 8) |
+                    ((headerBytes[9] & 0xFF) << 16) | ((headerBytes[8] & 0xFF) << 24);
 
-        // TODO handle bad cases (missing packets, curSeqNum - prevSeqNum > buffer.length, ...)
-        if (curSeqNo <= prevSeqNum) {
-            return;
-        }
+            if (curSeqNo <= prevSeqNum) {
+                return;
+            }
 
-        log.debug("Got audio packet. flag: {}, type: {}, prevSeqNum: {}, curSecNum: {}, audio packets in buffer: {}",
-                flag, type, prevSeqNum, curSeqNo, packetsInBuffer);
+            log.debug("Got audio packet. flag: {}, type: {}, prevSeqNum: {}, curSecNum: {}, audio packets in buffer: {}",
+                    flag, type, prevSeqNum, curSeqNo, packetsInBuffer);
 
-        AudioPacket audioPacket = buffer[curSeqNo % buffer.length];
-        audioPacket
-                .flag(flag)
-                .type(type)
-                .sequenceNumber(curSeqNo)
-                .timestamp(timestamp)
-                .ssrc(ssrc)
-                .available(true)
-                .encodedAudioSize(content.readableBytes())
-                .encodedAudio(packet -> content.readBytes(packet, 0, content.readableBytes()));
-        packetsInBuffer++;
+            AudioPacket audioPacket = buffer[curSeqNo % buffer.length];
+            audioPacket
+                    .flag(flag)
+                    .type(type)
+                    .sequenceNumber(curSeqNo)
+                    .timestamp(timestamp)
+                    .ssrc(ssrc)
+                    .available(true)
+                    .encodedAudioSize(content.readableBytes())
+                    .encodedAudio(packet -> content.readBytes(packet, 0, content.readableBytes()));
+            packetsInBuffer++;
 
-        while (dequeue(curSeqNo)) {
-            curSeqNo++;
+            while (dequeue(curSeqNo)) {
+                curSeqNo++;
+            }
+        } finally {
+            // Rilascia il ByteBuf dopo l'utilizzo
+            content.release();
+            Log.d(TAG, "ByteBuf released");
         }
     }
 

@@ -1,5 +1,7 @@
 package com.github.serezhka.jap2server.internal.handler.mirroring;
 
+import android.util.Log;
+
 import com.github.serezhka.jap2lib.AirPlay;
 import com.github.serezhka.jap2server.AirplayDataConsumer;
 import io.netty.buffer.ByteBuf;
@@ -73,6 +75,12 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
     }
 
     @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        headerBuf.release();  // Rilascia il buffer quando il gestore viene rimosso
+        super.handlerRemoved(ctx);
+    }
+
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) {
         while (msg.isReadable()) {
 
@@ -93,11 +101,10 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 msg.readBytes(payload, Math.min(payload.writableBytes(), msg.readableBytes()));
 
                 if (payload.writableBytes() == 0) {
-
                     byte[] payloadBytes = new byte[header.getPayloadSize()];
-                    payload.readBytes(payloadBytes);
-
                     try {
+                        payload.readBytes(payloadBytes);
+
                         if (header.getPayloadType() == 0) {
                             airPlay.decryptVideo(payloadBytes);
                             processVideo(payloadBytes);
@@ -107,12 +114,12 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
                             log.debug("Unhandled payload type: {}", header.getPayloadType());
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        log.error("Error processing payload", e);
+                    } finally {
+                        payload.release();  // Assicurati che venga rilasciato sempre
+                        payload = null;
+                        header = null;
                     }
-
-                    payload.release();
-                    payload = null;
-                    header = null;
                 }
             }
         }
@@ -134,6 +141,7 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
             }
             if (payload.length - nc_len > 4) {
                 log.error("Decrypt error!");
+                Log.e("MirroringHandler", "Decrypt error!");
                 return;
             }
         }
