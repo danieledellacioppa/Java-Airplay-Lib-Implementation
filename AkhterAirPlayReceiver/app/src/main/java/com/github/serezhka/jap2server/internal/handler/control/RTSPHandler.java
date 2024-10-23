@@ -6,6 +6,7 @@ import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo;
 import com.github.serezhka.jap2server.AirplayDataConsumer;
 import com.github.serezhka.jap2server.internal.AudioControlServer;
 import com.github.serezhka.jap2server.internal.AudioReceiver;
+import com.github.serezhka.jap2server.internal.ConnectionListener;
 import com.github.serezhka.jap2server.internal.MirroringReceiver;
 import com.github.serezhka.jap2server.internal.handler.audio.AudioHandler;
 import com.github.serezhka.jap2server.internal.handler.mirroring.MirroringHandler;
@@ -33,6 +34,7 @@ public class RTSPHandler extends ControlHandler {
     private final AirplayDataConsumer airplayDataConsumer;
     private final int airPlayPort;
     private final int airTunesPort;
+
 
     public RTSPHandler(int airPlayPort, int airTunesPort, SessionManager sessionManager,
                        AirplayDataConsumer airplayDataConsumer) {
@@ -90,7 +92,12 @@ public class RTSPHandler extends ControlHandler {
                         airplayDataConsumer.onVideoFormat(videoStreamInfo);
 
                         MirroringHandler mirroringHandler = new MirroringHandler(session.getAirPlay(), airplayDataConsumer);
-                        MirroringReceiver airPlayReceiver = new MirroringReceiver(airPlayPort, mirroringHandler);
+                        MirroringReceiver airPlayReceiver = new MirroringReceiver(airPlayPort, mirroringHandler, new ConnectionListener() {
+                            @Override
+                            public void onConnectionLost() {
+                                session.stopMirroring();
+                            }
+                        });
                         Thread airPlayReceiverThread = new Thread(airPlayReceiver);
                         session.setAirPlayReceiverThread(airPlayReceiverThread);
                         airPlayReceiverThread.start();

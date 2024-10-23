@@ -18,6 +18,11 @@ import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo
 import com.github.serezhka.jap2server.AirPlayServer
 import com.github.serezhka.jap2server.AirplayDataConsumer
+import com.github.serezhka.jap2server.internal.ConnectionListener
+import com.github.serezhka.jap2server.internal.ConnectionLostEvent
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import java.util.LinkedList
 
 /**
@@ -56,9 +61,6 @@ import java.util.LinkedList
  * proper lifecycle management of video and audio resources.
  */
 
-
-
-
 class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private lateinit var airPlayServer: AirPlayServer
@@ -91,7 +93,11 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                 e.printStackTrace()
             }
         }, "start-server-thread").start()
+
+        // Iscrivi la MainActivity all'EventBus
+        EventBus.getDefault().register(this)
     }
+
 
     override fun onStop() {
         super.onStop()
@@ -100,6 +106,13 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         mVideoPlayer?.stopVideoPlay()
         mVideoPlayer = null
         airPlayServer.stop()
+        LogRepository.addLog("onStop: MainActivity stopped.")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Deregistra la MainActivity dall'EventBus
+        EventBus.getDefault().unregister(this)
     }
 
     private val airplayDataConsumer = object : AirplayDataConsumer {
@@ -115,6 +128,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
             }
 
             if (mVideoPlayer != null) {
+//                mVideoPlayer?.start()
                 while (mVideoCacheList.isNotEmpty()) {
                     mVideoPlayer?.addPacker(mVideoCacheList.removeFirst())
                 }
@@ -162,6 +176,15 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         // Not needed at the moment
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onConnectionLost(event: ConnectionLostEvent) {
+        isConnectionActive = false
+        LogRepository.addLog("Connection lost.")
+
+        // Fermare il video player in modo sicuro
+        mVideoPlayer?.stopVideoPlay()
     }
 
 }

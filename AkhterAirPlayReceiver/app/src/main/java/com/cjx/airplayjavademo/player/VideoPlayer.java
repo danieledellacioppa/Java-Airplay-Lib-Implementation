@@ -25,10 +25,16 @@ public class VideoPlayer {
     private final Surface mSurface;
     private BlockingQueue<NALPacket> packets = new LinkedBlockingQueue<>(500);
     private final HandlerThread mDecodeThread = new HandlerThread("VideoDecoder");
+    // dichiariamo variabile di stato isStarted
+    public boolean isStarted = false;
 
     private final MediaCodec.Callback mDecoderCallback = new MediaCodec.Callback() {
         @Override
         public void onInputBufferAvailable(MediaCodec codec, int index) {
+            if (!isStarted) {
+                Log.w(TAG, "Decoder not started, skipping input buffer.");
+                return;
+            }
             try {
                 NALPacket packet = packets.take();
                 codec.getInputBuffer(index).put(packet.nalData);
@@ -42,6 +48,10 @@ public class VideoPlayer {
 
         @Override
         public void onOutputBufferAvailable(MediaCodec codec, int index, MediaCodec.BufferInfo info) {
+            if (!isStarted) {
+                Log.w(TAG, "Decoder not started, skipping output buffer.");
+                return;
+            }
             try {
                 codec.releaseOutputBuffer(index, true);
             } catch (IllegalStateException e) {
@@ -56,7 +66,7 @@ public class VideoPlayer {
 
         @Override
         public void onOutputFormatChanged(MediaCodec codec, MediaFormat format) {
-
+            Log.i(TAG, "Output format changed: " + format);
         }
     };
 
@@ -67,6 +77,11 @@ public class VideoPlayer {
     }
 
     public void initDecoder() {
+        if (isStarted) {
+            Log.w(TAG, "Decoder is already started.");
+            return;
+        }
+
         mDecodeThread.start();
         try {
             // 解码分辨率
@@ -77,12 +92,17 @@ public class VideoPlayer {
             mDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
             mDecoder.setCallback(mDecoderCallback, new Handler(mDecodeThread.getLooper()));
             mDecoder.start();
+            isStarted = true;
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void addPacker(NALPacket nalPacket) {
+        if (!isStarted) {
+            Log.w(TAG, "Cannot add packet, decoder is not started.");
+            return;
+        }
         try {
             packets.put(nalPacket);
         } catch (InterruptedException e) {
@@ -95,19 +115,38 @@ public class VideoPlayer {
         initDecoder();
     }
 
+//    public void stopVideoPlay() {
+//        try {
+//            mDecoder.stop();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        try {
+//            mDecoder.release();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        mDecodeThread.quit();
+//        packets.clear();
+//    }
+
+
     public void stopVideoPlay() {
+        if (!isStarted) {
+            Log.w(TAG, "Decoder already stopped.");
+            return;
+        }
+
         try {
             mDecoder.stop();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
             mDecoder.release();
+            mDecodeThread.quit();
+            packets.clear();
+            isStarted = false;  // Imposta lo stato come fermato
+            Log.d(TAG, "MediaCodec stopped and released.");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        mDecodeThread.quit();
-        packets.clear();
     }
 
     private void doDecode(NALPacket nalPacket) throws IllegalStateException {

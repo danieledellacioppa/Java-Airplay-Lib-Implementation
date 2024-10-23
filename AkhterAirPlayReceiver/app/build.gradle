@@ -81,4 +81,6 @@ dependencies {
 //    implementation 'org.slf4j:slf4j-api:1.7.36'
     implementation 'org.slf4j:slf4j-simple:1.7.25'
 //    implementation 'ch.qos.reload4j:reload4j:1.2.19'
+
+    implementation 'org.greenrobot:eventbus:3.3.1'
 }

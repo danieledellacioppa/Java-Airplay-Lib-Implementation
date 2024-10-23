@@ -2,6 +2,9 @@ package com.github.serezhka.jap2server.internal;
 
 import android.util.Log;
 import com.github.serezhka.jap2server.internal.handler.mirroring.MirroringHandler;
+
+import org.greenrobot.eventbus.EventBus;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -60,15 +63,17 @@ public class MirroringReceiver implements Runnable {
 
     private final int port;
     private final MirroringHandler mirroringHandler;
+    private final ConnectionListener listener;  // Aggiungi il listener qui
     private static final String TAG = "MirroringReceiver";
 
     // Numero massimo di tentativi di riconnessione
     private final int maxRetryAttempts = 5;
     private int retryAttempts = 0;
 
-    public MirroringReceiver(int port, MirroringHandler mirroringHandler) {
+    public MirroringReceiver(int port, MirroringHandler mirroringHandler, ConnectionListener listener) {
         this.port = port;
         this.mirroringHandler = mirroringHandler;
+        this.listener = listener;
     }
 
     @Override
@@ -107,8 +112,12 @@ public class MirroringReceiver implements Runnable {
             } catch (InterruptedException e) {
                 Log.e(TAG, "Mirroring receiver interrupted during bind or sync", e);
                 Thread.currentThread().interrupt();
+                listener.onConnectionLost();  // Notifica la disconnessione
+                EventBus.getDefault().post(new ConnectionLostEvent());
             } catch (Exception e) {
                 Log.e(TAG, "Error during server setup", e);
+                listener.onConnectionLost();  // Notifica la disconnessione
+                EventBus.getDefault().post(new ConnectionLostEvent());
             } finally {
                 Log.d(TAG, "Mirroring receiver stopped or failed. Cleaning up...");
                 closeChannel(channelFuture);
@@ -128,6 +137,7 @@ public class MirroringReceiver implements Runnable {
         } catch (InterruptedException e) {
             Log.e(TAG, "Reconnection interrupted", e);
             Thread.currentThread().interrupt();
+            listener.onConnectionLost();  // Notifica la disconnessione
             return false;
         }
     }
@@ -153,3 +163,4 @@ public class MirroringReceiver implements Runnable {
         return Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class;
     }
 }
+
