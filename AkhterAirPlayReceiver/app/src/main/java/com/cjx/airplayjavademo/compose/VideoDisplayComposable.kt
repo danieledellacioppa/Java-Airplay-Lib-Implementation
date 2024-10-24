@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.SurfaceHolder
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,10 +77,37 @@ fun LogDisplayComposable() {
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = logoAscii,
-                style = TextStyle(fontSize = 4.sp, color = Color.Yellow) // Font molto piccolo, testo giallo
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
             )
+            {
+                Text(
+                    text = logoAscii,
+                    style = TextStyle(fontSize = 4.sp, color = Color.Yellow) // Font molto piccolo, testo giallo
+                )
+                Column()
+                {
+                    Text(
+                        text = "AirPlay Receiver",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            color = Color.Yellow,
+                            fontFamily = minecraftFont
+                        ) // Font molto piccolo, testo giallo
+                    )
+                    Text(
+                        text = "Beta Test",
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            color = Color.Red,
+                            fontFamily = minecraftFont
+                        ) // Font molto piccolo, testo giallo
+                    )
+                }
+            }
+
+
         }
 
         // La LazyColumn con i log che può essere scrollata
@@ -100,21 +128,21 @@ fun LogDisplayComposable() {
             items(logMessages.size) { index ->
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
                 ) {
                     // Imposta larghezza fissa per il punto
                     Box(
                         modifier = Modifier
-                            .width(30.dp) // Fissare la larghezza per la pallina
+                            .width(40.dp) // Fissare la larghezza per la pallina
                             .align(Alignment.CenterVertically)
                     ) {
                         Text(
                             text = "·",
                             style = TextStyle(
                                 color = Color(0xFFFF6600), // Testo arancione
-                                fontSize = 40.sp,
+                                fontSize = 50.sp,
                                 fontFamily = FontFamily.Monospace, // Imposta font monospace
                                 shadow = Shadow(
                                     color = Color.Black,
@@ -134,7 +162,7 @@ fun LogDisplayComposable() {
                             .align(Alignment.CenterVertically),
                         style = TextStyle(
                             color = Color.Yellow,
-                            fontSize = 12.sp,
+                            fontSize = 16.sp,
                             fontFamily = FontFamily.Monospace, // Imposta font monospace
 //                            lineHeight = 4.sp,
                             shadow = Shadow(
