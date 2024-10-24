@@ -1,22 +1,32 @@
 package com.cjx.airplayjavademo.compose
 
+import airplayjavademo.R
 import android.view.SurfaceView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.SurfaceHolder
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cjx.airplayjavademo.tools.LogRepository
@@ -50,10 +60,14 @@ fun VideoDisplayComposable(
 fun LogDisplayComposable() {
     val logMessages = remember { LogRepository.getLogs() }
 
-    // Layout principale che mostra il logo fisso in alto e la LazyColumn che scorre
-    Column(modifier = Modifier.fillMaxSize()) {
+    // Layout principale con sfondo verde
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF464545)) // Sfondo verde
+    ) {
 
-        // Mostra il logo ASCII sempre in testa
+        // Mostra il logo ASCII sempre in testa con testo giallo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -62,12 +76,25 @@ fun LogDisplayComposable() {
         ) {
             Text(
                 text = logoAscii,
-                style = TextStyle(fontSize = 6.sp, color = Color.Gray) // Font molto piccolo
+                style = TextStyle(fontSize = 4.sp, color = Color.Yellow) // Font molto piccolo, testo giallo
             )
         }
 
         // La LazyColumn con i log che può essere scrollata
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp) // Stacca la LazyColumn dai bordi
+                .clip(RoundedCornerShape(16.dp)) // Angoli arrotondati
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0x55AAEA00),
+                            Color(0xFF464545)
+                        )
+                    )
+                )
+        ) {
             items(logMessages.size) { index ->
                 Row(
                     modifier = Modifier
@@ -75,13 +102,48 @@ fun LogDisplayComposable() {
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Mostra i log con uno stile normale
+                    Text(
+                        text = "·",
+                        style = TextStyle(
+                            color = Color(0xFFFF6600), // Testo verde
+                            fontSize = 30.sp,
+                            fontFamily = FontFamily.Monospace, // Imposta font monospace
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(2f, 2f),
+                                blurRadius = 3f
+                            )
+                        )
+                    )
+                    // Mostra i log con testo giallo
                     Text(
                         text = logMessages[index],
-                        style = TextStyle(fontSize = 16.sp) // Font normale per i log
+                        style = TextStyle(
+                            color = Color.Yellow,
+                            fontSize = 12.sp,
+                            fontFamily = FontFamily.Monospace, // Imposta font monospace
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(2f, 2f),
+                                blurRadius = 3f
+                            )
+                        ),
+                        fontFamily = FontFamily.Monospace,
                     )
                 }
             }
         }
     }
 }
+
+val minecraftFont = FontFamily(
+    Font(R.font.minecraft)
+)
+
+val kaushanScriptFont = FontFamily(
+    Font(R.font.kaushanscript_regular)
+)
+
+val bankprinterFont = FontFamily(
+    Font(R.font.bankprinter)
+)
