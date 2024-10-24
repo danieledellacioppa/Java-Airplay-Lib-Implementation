@@ -26,7 +26,7 @@ The **Akhter AirPlay Receiver** is a Java-based application designed to enable s
     *   When a successful connection is made, there are no teardown requests from the iPhone. However, when the connection attempt fails (e.g., a failed screencast), the iPhone generates a teardown request, trying to close an old connection and start a new one. This suggests that the iPhone is trying to release a stuck network resource or connection that wasn’t properly closed by the Android receiver.
     During every failed connection attempt, the iPhone attempts a teardown requests every time, likely trying to “free” resources from a previous connection that didn’t close properly. The teardown requests are futile if Android is unable to handle them, and they may indicate network resources like sockets are still open or in an inconsistent state.
     Upon reconnection attempts after failed screencasts, the logcat on Android shows a teardown request from the iPhone, even though a connection was never successfully made. This pattern indicates that Android may be holding on to resources from a failed session, preventing a new successful connection.
-    Solution to be implemented:
+  - Solution to be implemented:
     *	Review how Android manages network resources, such as sockets, to ensure that teardown requests are handled appropriately and all resources are released properly.
     *	Investigate the cycle of connection and disconnection between the iPhone and Android to identify why teardown requests are not processed as expected after a failed connection attempt.
     *	Ensure that Android’s AirPlay implementation fully closes all network connections and resources upon teardown, so that the iPhone can start fresh without leftover resources from the previous session.
