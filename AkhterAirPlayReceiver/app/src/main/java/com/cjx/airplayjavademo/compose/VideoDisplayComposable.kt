@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cjx.airplayjavademo.tools.LogRepository
@@ -102,33 +104,46 @@ fun LogDisplayComposable() {
                         .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "·",
-                        style = TextStyle(
-                            color = Color(0xFFFF6600), // Testo verde
-                            fontSize = 30.sp,
-                            fontFamily = FontFamily.Monospace, // Imposta font monospace
-                            shadow = Shadow(
-                                color = Color.Black,
-                                offset = Offset(2f, 2f),
-                                blurRadius = 3f
-                            )
+                    // Imposta larghezza fissa per il punto
+                    Box(
+                        modifier = Modifier
+                            .width(30.dp) // Fissare la larghezza per la pallina
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        Text(
+                            text = "·",
+                            style = TextStyle(
+                                color = Color(0xFFFF6600), // Testo arancione
+                                fontSize = 40.sp,
+                                fontFamily = FontFamily.Monospace, // Imposta font monospace
+                                shadow = Shadow(
+                                    color = Color.Black,
+                                    offset = Offset(2f, 2f),
+                                    blurRadius = 3f
+                                )
+                            ),
+                            textAlign = TextAlign.Center
                         )
-                    )
+                    }
+
                     // Mostra i log con testo giallo
                     Text(
                         text = logMessages[index],
+                        modifier = Modifier
+                            .padding(start = 3.dp) // Margine per distanziare il testo dal punto
+                            .align(Alignment.CenterVertically),
                         style = TextStyle(
                             color = Color.Yellow,
                             fontSize = 12.sp,
                             fontFamily = FontFamily.Monospace, // Imposta font monospace
+//                            lineHeight = 4.sp,
                             shadow = Shadow(
                                 color = Color.Black,
                                 offset = Offset(2f, 2f),
                                 blurRadius = 3f
                             )
                         ),
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = FontFamily.Monospace
                     )
                 }
             }
