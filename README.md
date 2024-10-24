@@ -22,16 +22,15 @@ The **Akhter AirPlay Receiver** is a Java-based application designed to enable s
 
 ### Known Issues:
 - **Wi-Fi Reset Required**: The connection may fail after the first mirroring session, requiring a Wi-Fi reset on the iPhone to initiate a new connection. This is likely due to socket handling issues that need further investigation.
-- Known Issues:
-
-  •	Wi-Fi Reset Required: The connection may fail after the first mirroring session, requiring a Wi-Fi reset on the iPhone to initiate a new connection. This is likely due to socket handling issues that need further investigation.
-  When a successful connection is made, there are no teardown requests from the iPhone. However, when the connection attempt fails (e.g., a failed screencast), the iPhone generates a teardown request, trying to close an old connection and start a new one. This suggests that the iPhone is trying to release a stuck network resource or connection that wasn’t properly closed by the Android receiver.
-  During failed connection attempts, the iPhone attempts multiple teardown requests, likely trying to “free” resources from a previous connection that didn’t close properly. The teardown requests are futile if Android is unable to handle them, and they may indicate network resources like sockets are still open or in an inconsistent state.
-  Upon reconnection attempts after failed screencasts, the logcat on Android shows a teardown request from the iPhone, even though a connection was never successfully made. This pattern indicates that Android may be holding on to resources from a failed session, preventing a new successful connection.
-  Solution to be implemented:
-  •	Review how Android manages network resources, such as sockets, to ensure that teardown requests are handled appropriately and all resources are released properly.
-  •	Investigate the cycle of connection and disconnection between the iPhone and Android to identify why teardown requests are not processed as expected after a failed connection attempt.
-  •	Ensure that Android’s AirPlay implementation fully closes all network connections and resources upon teardown, so that the iPhone can start fresh without leftover resources from the previous session.
+  - Known Issues:
+    *  Wi-Fi Reset Required: The connection may fail after the first mirroring session, requiring a Wi-Fi reset on the iPhone to initiate a new connection. This is likely due to socket handling issues that need further investigation.
+    When a successful connection is made, there are no teardown requests from the iPhone. However, when the connection attempt fails (e.g., a failed screencast), the iPhone generates a teardown request, trying to close an old connection and start a new one. This suggests that the iPhone is trying to release a stuck network resource or connection that wasn’t properly closed by the Android receiver.
+    During failed connection attempts, the iPhone attempts multiple teardown requests, likely trying to “free” resources from a previous connection that didn’t close properly. The teardown requests are futile if Android is unable to handle them, and they may indicate network resources like sockets are still open or in an inconsistent state.
+    Upon reconnection attempts after failed screencasts, the logcat on Android shows a teardown request from the iPhone, even though a connection was never successfully made. This pattern indicates that Android may be holding on to resources from a failed session, preventing a new successful connection.
+    Solution to be implemented:
+    *	Review how Android manages network resources, such as sockets, to ensure that teardown requests are handled appropriately and all resources are released properly.
+    *	Investigate the cycle of connection and disconnection between the iPhone and Android to identify why teardown requests are not processed as expected after a failed connection attempt.
+    *	Ensure that Android’s AirPlay implementation fully closes all network connections and resources upon teardown, so that the iPhone can start fresh without leftover resources from the previous session.
 - **Audio Handling**: Audio streams are not yet functional.
 - **Socket Management**: There's ongoing work to improve socket handling, especially for closing and reopening sockets properly to allow reconnections without manual intervention.
 
