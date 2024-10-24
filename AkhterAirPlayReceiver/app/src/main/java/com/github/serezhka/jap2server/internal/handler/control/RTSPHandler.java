@@ -1,5 +1,7 @@
 package com.github.serezhka.jap2server.internal.handler.control;
 
+import android.util.Log;
+
 import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo;
 import com.github.serezhka.jap2lib.rtsp.MediaStreamInfo;
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo;
@@ -120,8 +122,11 @@ public class RTSPHandler extends ControlHandler {
             return sendResponse(ctx, request, response);
         } else if (RtspMethods.TEARDOWN.equals(request.method())) {
             session.getAirPlay().printPlist("TEARDOWN ",new ByteBufInputStream(request.content()));
+            Log.d("RTSPHandler", "TEARDOWN: session.getAirPlay().isPairVerified() = " + session.getAirPlay().isPairVerified());
+            // printing request content
+            Log.d("RTSPHandler", "TEARDOWN: request was " + request.content());
 
-            MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
+                MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
             if (mediaStreamInfo != null) {
                 switch (mediaStreamInfo.getStreamType()) {
                     case AUDIO:

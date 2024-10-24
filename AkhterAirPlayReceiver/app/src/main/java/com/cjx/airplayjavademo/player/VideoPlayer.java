@@ -1,8 +1,12 @@
 package com.cjx.airplayjavademo.player;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -12,6 +16,7 @@ import android.view.Surface;
 import com.cjx.airplayjavademo.model.NALPacket;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -31,7 +36,7 @@ public class VideoPlayer {
         public void onInputBufferAvailable(MediaCodec codec, int index) {
             try {
                 NALPacket packet = packets.take();
-                codec.getInputBuffer(index).put(packet.nalData);
+                Objects.requireNonNull(codec.getInputBuffer(index)).put(packet.nalData);
                 mDecoder.queueInputBuffer(index, 0, packet.nalData.length, packet.pts, 0);
             } catch (InterruptedException e) {
                 throw new IllegalStateException("Interrupted when is waiting");
@@ -93,6 +98,27 @@ public class VideoPlayer {
 
     public void start() {
         initDecoder();
+    }
+
+
+    public void release() {
+        if (mDecoder != null) {
+            try {
+                mDecoder.stop();
+                mDecoder.release();
+            } catch (Exception e) {
+                Log.e(TAG, "Error while releasing MediaCodec", e);
+            }
+        }
+
+        if (mDecodeThread != null && mDecodeThread.isAlive()) {
+            mDecodeThread.quitSafely();
+        }
+
+        packets.clear();  // Rilascia il buffer dei pacchetti
+
+        Log.d(TAG, "VideoPlayer resources released.");
+
     }
 
     public void stopVideoPlay() {

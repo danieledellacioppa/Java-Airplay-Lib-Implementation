@@ -110,6 +110,7 @@ public class MirroringReceiver implements Runnable {
                 Log.e(TAG, "Mirroring receiver interrupted during bind or sync", e);
                 Thread.currentThread().interrupt();
                 LogRepository.INSTANCE.setConnection(false);
+                System.gc();
             } catch (Exception e) {
                 Log.e(TAG, "Error during server setup", e);
             } finally {

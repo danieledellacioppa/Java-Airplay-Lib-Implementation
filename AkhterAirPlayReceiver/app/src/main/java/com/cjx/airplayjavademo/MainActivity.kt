@@ -1,5 +1,7 @@
 package com.cjx.airplayjavademo
 
+import android.content.Context
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
@@ -83,7 +85,15 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
             start()
         }
 
-        airPlayServer = AirPlayServer("AKHTER-panel", 7000, 49152, airplayDataConsumer)
+        //retrieve uname -a and print it via Android Shell
+        val process = Runtime.getRuntime().exec("getprop ro.product.product.model")
+        var deviceModel = process.inputStream.bufferedReader().readText()
+        LogRepository.addLog("Device Model: $deviceModel")
+
+        //remove the newline character from the device model string
+        deviceModel = deviceModel.replace("\n", "")
+
+        airPlayServer = AirPlayServer("AKHTER:$deviceModel", 7000, 49152, airplayDataConsumer)
 
         Thread(Runnable {
             try {
@@ -149,7 +159,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        // Not needed at the moment
+        Log.d(TAG, "surfaceCreated: Surface created.")
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -161,8 +171,25 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
+
+
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         Log.d(TAG, "surfaceDestroyed: Surface destroyed.")
+
+        //if worst comes to worst, we can try to disconnect from the wifi network
+//        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+//        val wifiInfo = wifiManager.connectionInfo
+//        val networkId = wifiInfo.networkId
+
+        // Rilascia tutte le risorse legate al VideoPlayer
+        if (mVideoPlayer != null) {
+//            wifiManager.disconnect()
+//            wifiManager.disableNetwork(networkId)
+//            wifiManager.isWifiEnabled = false
+//            wifiManager.reconnect()
+            mVideoPlayer?.release()  // Usa il nuovo metodo release per pulire le risorse
+            mVideoPlayer = null  // Imposta a null il riferimento per indicare che non c'è un VideoPlayer attivo
+        }
     }
 
 }

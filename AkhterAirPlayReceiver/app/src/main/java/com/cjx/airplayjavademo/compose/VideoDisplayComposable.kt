@@ -18,17 +18,19 @@ fun VideoDisplayComposable(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (isConnectionActive) {
-            // Mostra l'AndroidView (SurfaceView) quando la connessione è attiva
+            // Controlliamo se il SurfaceView è già attivo prima di inizializzarlo nuovamente
             AndroidView(
                 factory = { context ->
                     SurfaceView(context).apply {
                         holder.addCallback(callback)
                     }
                 },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                update = { view ->
+                    // Logica di aggiornamento del SurfaceView, se necessario
+                }
             )
         } else {
-            // Mostra i log quando la connessione non è attiva
             LogDisplayComposable()
         }
     }
@@ -37,6 +39,7 @@ fun VideoDisplayComposable(
 @Composable
 fun LogDisplayComposable() {
     val logMessages = remember { LogRepository.getLogs() }
+
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(logMessages.size) { index ->
