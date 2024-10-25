@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cjx.airplayjavademo.tools.LogRepository
 import com.cjx.airplayjavademo.ui.theme.Gray40
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun VideoDisplayComposable(
@@ -149,6 +151,8 @@ fun LogDisplayComposable(versionName: String) {
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.Start
                 ) {
+                    val currentTime = remember { LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) }
+
                     // Imposta larghezza fissa per il punto
                     Box(
                         modifier = Modifier
@@ -157,10 +161,10 @@ fun LogDisplayComposable(versionName: String) {
                             .align(Alignment.CenterVertically)
                     ) {
                         Text(
-                            text = "»",
+                            text = currentTime,
                             style = TextStyle(
                                 color = Color(0xFFFF6600), // Testo arancione
-                                fontSize = 16.sp,
+                                fontSize = 12.sp,
                                 fontFamily = alata,
                                 shadow = Shadow(
                                     color = Color.Black,
