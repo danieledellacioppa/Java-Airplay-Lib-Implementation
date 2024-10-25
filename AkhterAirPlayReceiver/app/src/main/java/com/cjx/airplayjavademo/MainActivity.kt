@@ -1,15 +1,11 @@
 package com.cjx.airplayjavademo
 
-import android.content.Context
-import android.net.wifi.WifiManager
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.cjx.airplayjavademo.compose.VideoDisplayComposable
 import com.cjx.airplayjavademo.model.NALPacket
 import com.cjx.airplayjavademo.model.PCMPacket
@@ -76,8 +72,16 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val versionName = try {
+            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            packageInfo.versionName
+        } catch (e: PackageManager.NameNotFoundException) {
+            "Unknown"
+        }
+
         setContent {
-            VideoDisplayComposable(this@MainActivity, isConnectionActive)
+            VideoDisplayComposable(this@MainActivity, isConnectionActive, versionName)
         }
         LogRepository.addLog("onCreate: MainActivity initialized.")
 

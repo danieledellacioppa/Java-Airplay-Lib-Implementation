@@ -5,7 +5,6 @@ import android.view.SurfaceView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.SurfaceHolder
@@ -37,7 +36,8 @@ import com.cjx.airplayjavademo.tools.LogRepository
 @Composable
 fun VideoDisplayComposable(
     callback: SurfaceHolder.Callback,
-    isConnectionActive: Boolean
+    isConnectionActive: Boolean,
+    versionName: String
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (isConnectionActive) {
@@ -54,13 +54,13 @@ fun VideoDisplayComposable(
                 }
             )
         } else {
-            LogDisplayComposable()
+            LogDisplayComposable(versionName)
         }
     }
 }
 
 @Composable
-fun LogDisplayComposable() {
+fun LogDisplayComposable(versionName: String) {
     val logMessages = remember { LogRepository.getLogs() }
 
     // Layout principale con sfondo verde
@@ -96,14 +96,29 @@ fun LogDisplayComposable() {
                             fontFamily = minecraftFont
                         ) // Font molto piccolo, testo giallo
                     )
-                    Text(
-                        text = "Beta Test",
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            color = Color.Red,
-                            fontFamily = minecraftFont
-                        ) // Font molto piccolo, testo giallo
+                    Row(
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically,
                     )
+                    {
+                        Text(
+                            text = "Beta Test v",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = Color.Red,
+                                fontFamily = minecraftFont
+                            ) // Font molto piccolo, testo giallo
+                        )
+                        Text(
+                            text = versionName,
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = Color(0xFFFF9800),
+                                fontFamily = minecraftFont
+                            ) // Font molto piccolo, testo giallo
+                        )
+                    }
+
                 }
             }
 
