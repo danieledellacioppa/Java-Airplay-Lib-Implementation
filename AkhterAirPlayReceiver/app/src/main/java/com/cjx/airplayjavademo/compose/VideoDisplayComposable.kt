@@ -21,7 +21,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -36,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cjx.airplayjavademo.tools.LogRepository
 import com.cjx.airplayjavademo.ui.theme.Gray40
+import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -58,6 +62,29 @@ fun VideoDisplayComposable(
                 update = { view ->
                     // Logica di aggiornamento del SurfaceView, se necessario
                 }
+            )
+
+            // Stato per gestire l'ora attuale
+            var currentTime by remember { mutableStateOf(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))) }
+
+            // Aggiorna l'ora ogni secondo
+            LaunchedEffect(Unit) {
+                while (true) {
+                    currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                    delay(1000L) // Aggiorna ogni secondo
+                }
+            }
+
+            // Aggiungiamo un piccolo composable per mostrare il tempo attuale
+            Text(
+                text = currentTime,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp),
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
             )
         } else {
             LogDisplayComposable(versionName)
