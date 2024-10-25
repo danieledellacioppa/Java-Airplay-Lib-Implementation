@@ -1,5 +1,6 @@
 package com.github.serezhka.jap2server.internal;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2server.AirplayDataConsumer;
 import com.github.serezhka.jap2server.internal.handler.control.FairPlayHandler;
 import com.github.serezhka.jap2server.internal.handler.control.HeartBeatHandler;
@@ -8,10 +9,7 @@ import com.github.serezhka.jap2server.internal.handler.control.RTSPHandler;
 import com.github.serezhka.jap2server.internal.handler.mirroring.MirroringHandler;
 import com.github.serezhka.jap2server.internal.handler.session.SessionManager;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
@@ -24,6 +22,9 @@ import io.netty.handler.codec.rtsp.RtspDecoder;
 import io.netty.handler.codec.rtsp.RtspEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +64,22 @@ public class ControlServer implements Runnable {
                         @Override
                         public void initChannel(final SocketChannel ch) throws Exception {
                             ch.pipeline().addLast(
+                                    // Aggiungi IdleStateHandler per gestire timeout di inattività
+                                    new IdleStateHandler(0, 0, 3), // Timeout di 3 secondi di inattività totale
+                                    new ChannelDuplexHandler() {
+                                        @Override
+                                        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                                            if (evt instanceof IdleStateEvent) {
+                                                IdleStateEvent event = (IdleStateEvent) evt;
+                                                if (event.state() == IdleState.ALL_IDLE) {
+                                                    log.info("Connection idle for 3 seconds. Closing connection.");
+                                                    LogRepository.INSTANCE.addLog("ControlServer", "Connection idle for 3 seconds. Closing connection.");
+                                                    ctx.close(); // Chiudi la connessione inattiva
+                                                }
+                                            }
+                                            super.userEventTriggered(ctx, evt);
+                                        }
+                                    },
                                     new RtspDecoder(),
                                     new RtspEncoder(),
                                     new HttpObjectAggregator(64 * 1024),
@@ -75,7 +92,14 @@ public class ControlServer implements Runnable {
                     })
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.SO_REUSEADDR, true)
-                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+            // Rimuoviamo SO_KEEPALIVE per evitare di mantenere la connessione aperta
+            //.childOption(ChannelOption.SO_KEEPALIVE, true); // Rimosso
+
+            // chiudiamo la connessione se non ci sono dati in arrivo
+            .childOption(ChannelOption.AUTO_CLOSE, true)
+            .childOption(ChannelOption.SO_LINGER, 0);
+
+
             ChannelFuture channelFuture = serverBootstrap.bind().sync();
             log.info("Control server listening on port: {}", airTunesPort);
             channelFuture.channel().closeFuture().sync();
