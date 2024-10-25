@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -144,21 +145,22 @@ fun LogDisplayComposable(versionName: String) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.Start
                 ) {
                     // Imposta larghezza fissa per il punto
                     Box(
                         modifier = Modifier
-                            .width(40.dp) // Fissare la larghezza per la pallina
+                            .width(50.dp) // Fissare la larghezza per la pallina
+                            .height(25.dp) // Fissare l'altezza per la pallina
                             .align(Alignment.CenterVertically)
                     ) {
                         Text(
-                            text = "·",
+                            text = "»",
                             style = TextStyle(
                                 color = Color(0xFFFF6600), // Testo arancione
-                                fontSize = 50.sp,
-                                fontFamily = FontFamily.Monospace, // Imposta font monospace
+                                fontSize = 16.sp,
+                                fontFamily = alata,
                                 shadow = Shadow(
                                     color = Color.Black,
                                     offset = Offset(2f, 2f),
@@ -204,4 +206,8 @@ val kaushanScriptFont = FontFamily(
 
 val bankprinterFont = FontFamily(
     Font(R.font.bankprinter)
+)
+
+val alata = FontFamily(
+    Font(R.font.alata)
 )
