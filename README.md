@@ -23,13 +23,13 @@ The **Akhter AirPlay Receiver** is a Java-based application designed to enable s
 ### Known Issues:
 - **Wi-Fi Reset Required**: The connection may fail after the first mirroring session, requiring a Wi-Fi reset on the iPhone to initiate a new connection. This is likely due to socket handling issues that need further investigation.
   - Observations:
-    *   When a successful connection is made, there are no teardown requests from the iPhone. However, when the connection attempt fails (e.g., a failed screencast), the iPhone generates a teardown request, trying to close an old connection and start a new one. This suggests that the iPhone is trying to release a stuck network resource or connection that wasn’t properly closed by the Android receiver.
-    During every failed connection attempt, the iPhone attempts a teardown requests every time, likely trying to “free” resources from a previous connection that didn’t close properly. The teardown requests are futile if Android is unable to handle them, and they may indicate network resources like sockets are still open or in an inconsistent state.
-    Upon reconnection attempts after failed screencasts, the logcat on Android shows a teardown request from the iPhone, even though a connection was never successfully made. This pattern indicates that Android may be holding on to resources from a failed session, preventing a new successful connection.
+    *   When a successful connection is made, there are no teardown requests from the iPhone. However, when the connection attempt fails (e.g., during a failed screencast), the iPhone generates a teardown request with CompositeByteBuf ridx 69, attempting to close an old connection and start a new one.
+    *   During the disconnection process, if the connection was successful to begin with, then, the iPhone generates two teardown requests: one with CompositeByteBuf ridx 69 and another with CompositeByteBuf ridx 42. These requests happen almost simultaneously and appear consistently upon disconnection after a successful screencast.
+    *   If the connection attempt fails, the iPhone generates a teardown request with CompositeByteBuf ridx 69. The ridx 42 will be generated only when disconnecting. So in this case the two teardown requests are not generated simultaneously.
   - Solution to be implemented:
-    *	Review how Android manages network resources, such as sockets, to ensure that teardown requests are handled appropriately and all resources are released properly.
+    *	Review how Android manages network resources, such as sockets, to ensure that teardown requests (both ridx 69 and ridx 42) are handled appropriately and that all resources are released properly.
     *	Investigate the cycle of connection and disconnection between the iPhone and Android to identify why teardown requests are not processed as expected after a failed connection attempt.
-    *	Ensure that Android’s AirPlay implementation fully closes all network connections and resources upon teardown, so that the iPhone can start fresh without leftover resources from the previous session.
+    *	Ensure that Android’s AirPlay implementation fully closes all network connections and resources upon teardown, so that the iPhone can initiate a fresh connection without leftover resources from the previous session.
 - **Audio Handling**: Audio streams are not yet functional.
 - **Socket Management**: There's ongoing work to improve socket handling, especially for closing and reopening sockets properly to allow reconnections without manual intervention.
 
