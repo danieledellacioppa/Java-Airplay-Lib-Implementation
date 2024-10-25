@@ -165,7 +165,7 @@ fun LogDisplayComposable(versionName: String) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp) // Stacca la LazyColumn dai bordi
-                .clip(RoundedCornerShape(16.dp)) // Angoli arrotondati
+                .clip(RoundedCornerShape(6.dp)) // Angoli arrotondati
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
@@ -231,7 +231,18 @@ fun LogDisplayComposable(versionName: String) {
                         text = logMessages[index].message, // Messaggio del log
                         modifier = Modifier
                             .padding(start = 3.dp) // Margine per distanziare il testo dal punto
-                            .align(Alignment.CenterVertically),
+                            .align(Alignment.CenterVertically)
+                            .clip(RoundedCornerShape(3.dp))
+                            //sfondo sfumato trasparente
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0x55FFEA00),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                        ,
                         style = TextStyle(
                             color = Color.Yellow,
                             fontSize = 13.sp,

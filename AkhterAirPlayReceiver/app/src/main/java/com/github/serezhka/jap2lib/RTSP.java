@@ -2,6 +2,7 @@ package com.github.serezhka.jap2lib;
 
 import android.util.Log;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.dd.plist.BinaryPropertyListParser;
 import com.dd.plist.BinaryPropertyListWriter;
 import com.dd.plist.NSArray;
@@ -298,6 +299,7 @@ class RTSP {
         try {
             NSDictionary plist = (NSDictionary) BinaryPropertyListParser.parse(inputStream);
             Log.i(TAG, rtspMethod + " plist 01: " + plist.toXMLPropertyList());
+            LogRepository.INSTANCE.addLog(TAG, rtspMethod + " plist 01: " + plist.toXMLPropertyList());
         } catch (Exception e) {
             StringBuilder textBuilder = new StringBuilder();
             try (Reader reader = new BufferedReader(new InputStreamReader
@@ -307,10 +309,12 @@ class RTSP {
                     textBuilder.append((char) c);
                 }
                 Log.i(TAG, rtspMethod + " plist 02: " + textBuilder.toString());
+                LogRepository.INSTANCE.addLog(TAG, rtspMethod + " plist 02: " + textBuilder.toString());
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
             Log.e(TAG, rtspMethod+ "--printPlist: ", e);
+            LogRepository.INSTANCE.addLog(TAG, rtspMethod + "--printPlist: " + e.getMessage());
 
         }
     }
