@@ -83,8 +83,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         setContent {
             VideoDisplayComposable(this@MainActivity, isConnectionActive, versionName)
         }
-        LogRepository.addLog("onCreate: MainActivity initialized.")
-
+        LogRepository.addLog(TAG, "onCreate: AirPlay server initialized. Version: $versionName")
         mAudioPlayer = AudioPlayer().apply {
             start()
         }
@@ -92,7 +91,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         //retrieve uname -a and print it via Android Shell
         val process = Runtime.getRuntime().exec("getprop ro.product.product.model")
         var deviceModel = process.inputStream.bufferedReader().readText()
-        LogRepository.addLog("Device Model: $deviceModel")
+        LogRepository.addLog(TAG, "Device model: $deviceModel")
 
         //remove the newline character from the device model string
         deviceModel = deviceModel.replace("\n", "")

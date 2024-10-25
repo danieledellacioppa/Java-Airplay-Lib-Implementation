@@ -1,5 +1,6 @@
 package com.cjx.airplayjavademo.tools
 
+import android.media.MediaDrm.LogMessage
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -16,8 +17,8 @@ object LogRepository {
         isConnectionActive = active
     }
 
-    fun addLog(message: String) {
-        logMessages.add(message)
+    fun addLog(tag: String, message: String){
+        logMessages.add("[$tag]: $message")
     }
 
     fun getLogs(): List<String> {

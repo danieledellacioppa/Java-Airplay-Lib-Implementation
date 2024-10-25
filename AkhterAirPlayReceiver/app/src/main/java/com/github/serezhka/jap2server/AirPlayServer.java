@@ -27,7 +27,7 @@ public class AirPlayServer {
 
     public void start() throws Exception {
         airPlayBonjour.start(airPlayPort, airTunesPort);
-        LogRepository.INSTANCE.addLog(TAG+"AirplayServer "+serverName+" started on airPlayPort:"+airPlayPort+" airTunesPort:"+airTunesPort);
+        LogRepository.INSTANCE.addLog(TAG, serverName + " started on ports: " + airPlayPort + ", " + airTunesPort);
         new Thread(controlServer).start();
     }
 
