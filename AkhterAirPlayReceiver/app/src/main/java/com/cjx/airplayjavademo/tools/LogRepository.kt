@@ -4,12 +4,22 @@ import android.media.MediaDrm.LogMessage
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+
+
+data class LogEntry(
+    val time: String, // Ora in cui il log è stato aggiunto
+    val tag: String,  // Tag del log
+    val message: String // Messaggio del log
+)
 
 object LogRepository {
     // Lista di log osservabile dai Composable
-    private val logMessages: SnapshotStateList<String> = mutableStateListOf()
+    private val logMessages: SnapshotStateList<LogEntry> = mutableStateListOf()
 
     var isConnectionActive by mutableStateOf(false)
 
@@ -17,11 +27,14 @@ object LogRepository {
         isConnectionActive = active
     }
 
-    fun addLog(tag: String, message: String){
-        logMessages.add("[$tag]: $message")
+    // Aggiunge un log con orario
+    fun addLog(tag: String, message: String) {
+        val currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+        logMessages.add(LogEntry(currentTime, tag, message))
     }
 
-    fun getLogs(): List<String> {
+    // Restituisce la lista di log
+    fun getLogs(): List<LogEntry> {
         return logMessages
     }
 }

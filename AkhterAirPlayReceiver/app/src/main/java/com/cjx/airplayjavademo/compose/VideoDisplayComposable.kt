@@ -151,7 +151,6 @@ fun LogDisplayComposable(versionName: String) {
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.Start
                 ) {
-                    val currentTime = remember { LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) }
 
                     // Imposta larghezza fissa per il punto
                     Box(
@@ -161,7 +160,7 @@ fun LogDisplayComposable(versionName: String) {
                             .align(Alignment.CenterVertically)
                     ) {
                         Text(
-                            text = currentTime,
+                            text = logMessages[index].time, // Ora del log
                             style = TextStyle(
                                 color = Color(0xFFFF6600), // Testo arancione
                                 fontSize = 12.sp,
@@ -176,15 +175,34 @@ fun LogDisplayComposable(versionName: String) {
                         )
                     }
 
+                    // Mostra il tag con testo rosso
+                    Text(
+                        text = logMessages[index].tag, // Tag del log
+                        modifier = Modifier
+                            .padding(start = 3.dp) // Margine per distanziare il testo dal punto
+                            .align(Alignment.CenterVertically),
+                        style = TextStyle(
+                            color = Color.Cyan,
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace, // Imposta font monospace
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(2f, 2f),
+                                blurRadius = 3f
+                            )
+                        ),
+                        fontFamily = FontFamily.Monospace
+                    )
+
                     // Mostra i log con testo giallo
                     Text(
-                        text = logMessages[index],
+                        text = logMessages[index].message, // Messaggio del log
                         modifier = Modifier
                             .padding(start = 3.dp) // Margine per distanziare il testo dal punto
                             .align(Alignment.CenterVertically),
                         style = TextStyle(
                             color = Color.Yellow,
-                            fontSize = 16.sp,
+                            fontSize = 13.sp,
                             fontFamily = FontFamily.Monospace, // Imposta font monospace
 //                            lineHeight = 4.sp,
                             shadow = Shadow(
