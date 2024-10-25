@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cjx.airplayjavademo.tools.LogRepository
+import com.cjx.airplayjavademo.ui.theme.Gray40
 
 @Composable
 fun VideoDisplayComposable(
@@ -68,7 +69,7 @@ fun LogDisplayComposable(versionName: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF464545)) // Sfondo verde
+            .background(Gray40)
     ) {
 
         // Mostra il logo ASCII sempre in testa con testo giallo
