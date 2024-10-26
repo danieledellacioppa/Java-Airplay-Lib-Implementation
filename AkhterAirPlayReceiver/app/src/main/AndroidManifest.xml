@@ -16,7 +16,7 @@
         android:icon="@drawable/airplayakhter"
         android:label="Akhter Airplay"
         android:largeHeap="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/airplayakhter"
         android:supportsRtl="true"
         android:theme="@style/Theme.AirplayJavaDemo">
         <activity android:name="com.cjx.airplayjavademo.MainActivity"
