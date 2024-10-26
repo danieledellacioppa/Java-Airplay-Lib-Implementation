@@ -10,6 +10,7 @@ import android.view.Surface;
 
 
 import com.cjx.airplayjavademo.model.NALPacket;
+import com.cjx.airplayjavademo.tools.LogRepository;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -130,6 +131,33 @@ public class VideoPlayer {
         }
         mDecodeThread.quit();
         packets.clear();
+    }
+
+    public void stopPlayer() {
+        if (mDecoder != null) {
+            try {
+                mDecoder.stop();
+                mDecoder.release();
+            } catch (Exception e) {
+                Log.e(TAG, "Errore durante il rilascio del MediaCodec", e);
+                LogRepository.INSTANCE.addLog(TAG, "Errore durante il rilascio del MediaCodec");
+            }
+        }
+
+        if (mDecodeThread != null && mDecodeThread.isAlive()) {
+            mDecodeThread.quitSafely();
+            try {
+                mDecodeThread.join(); // Assicura che il thread si sia fermato
+                LogRepository.INSTANCE.addLog(TAG, "VideoPlayer thread stopped.");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                Log.e(TAG, "Errore durante l'interruzione di mDecodeThread", e);
+            }
+        }
+
+        packets.clear();
+        Log.d(TAG, "Risorse VideoPlayer rilasciate.");
+        LogRepository.INSTANCE.addLog(TAG, "Risorse VideoPlayer rilasciate.");
     }
 
     private void doDecode(NALPacket nalPacket) throws IllegalStateException {

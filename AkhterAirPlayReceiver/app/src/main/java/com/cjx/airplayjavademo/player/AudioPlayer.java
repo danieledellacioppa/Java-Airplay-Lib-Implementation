@@ -7,6 +7,7 @@ import android.util.Log;
 
 
 import com.cjx.airplayjavademo.model.PCMPacket;
+import com.cjx.airplayjavademo.tools.LogRepository;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -38,11 +39,12 @@ public class AudioPlayer extends Thread {
     @Override
     public void run() {
         super.run();
-        while (!isStopThread) {
+        while (!isStopThread && !isInterrupted()) {
             try {
                 doPlay(packets.take());
             } catch (InterruptedException e) {
                 Log.e(TAG, "run: take error: ", e);
+                Thread.currentThread().interrupt(); // Reinvia il flag di interruzione
             }
         }
     }
@@ -66,6 +68,20 @@ public class AudioPlayer extends Thread {
             packets.clear();
             mTrack = null;
         }
+    }
+
+    public void stopPlayer() {
+        isStopThread = true;
+        if (mTrack != null) {
+            mTrack.flush();
+            mTrack.stop();
+            mTrack.release();
+            mTrack = null;
+            LogRepository.INSTANCE.addLog(TAG, "AudioPlayer stopped.");
+        }
+        packets.clear();
+        interrupt(); // Interrompe il thread corrente se è in attesa
+        LogRepository.INSTANCE.addLog(TAG, "AudioPlayer thread stopped.");
     }
 
 }

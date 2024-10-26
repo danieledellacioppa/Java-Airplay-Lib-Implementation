@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         window.navigationBarColor = Gray40.toArgb()
         setContent {
             BioAuthenticatorTheme {
-                VideoDisplayComposable(this@MainActivity, isConnectionActive, versionName, ::startServer, ::stopServer)
+                VideoDisplayComposable(this@MainActivity, isConnectionActive, versionName, ::startServer, ::stopServer, ::stopAudioPlayer, ::stopVideoPlayer)
             }
         }
         LogRepository.addLog(TAG, "onCreate: AirPlay server initialized. Version: $versionName")
@@ -128,6 +128,18 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    fun stopAudioPlayer() {
+        mAudioPlayer?.stopPlayer()
+        mAudioPlayer = null
+        LogRepository.addLog(TAG, "AudioPlayer stopped.")
+    }
+
+    fun stopVideoPlayer() {
+        mVideoPlayer?.stopPlayer()
+        mVideoPlayer = null
+        LogRepository.addLog(TAG, "VideoPlayer stopped.")
     }
 
 

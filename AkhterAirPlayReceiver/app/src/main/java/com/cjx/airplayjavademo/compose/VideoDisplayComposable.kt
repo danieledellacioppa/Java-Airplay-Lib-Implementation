@@ -50,7 +50,9 @@ fun VideoDisplayComposable(
     isConnectionActive: Boolean,
     versionName: String,
     onStartServer: () -> Unit, // Funzione per avviare il server
-    onStopServer: () -> Unit // Funzione per fermare il server
+    onStopServer: () -> Unit, // Funzione per fermare il server
+    onStopAudioPlayer: () -> Unit, // Funzione per fermare l'audio player
+    onStopVideoPlayer: () -> Unit // Funzione per fermare il video player
 )  {
     Box(modifier = Modifier.fillMaxSize()) {
         if (isConnectionActive) {
@@ -90,13 +92,19 @@ fun VideoDisplayComposable(
                 )
             )
         } else {
-            LogDisplayComposable(versionName, onStartServer, onStopServer)
+            LogDisplayComposable(versionName, onStartServer, onStopServer, onStopAudioPlayer, onStopVideoPlayer)
         }
     }
 }
 
 @Composable
-fun LogDisplayComposable(versionName: String, onStartServer: () -> Unit, onStopServer: () -> Unit) {
+fun LogDisplayComposable(
+    versionName: String,
+    onStartServer: () -> Unit,
+    onStopServer: () -> Unit,
+    onStopAudioPlayer: () -> Unit,
+    onStopVideoPlayer: () -> Unit
+) {
     val logMessages = remember { LogRepository.getLogs() }
     // Crea un LazyListState per monitorare e controllare lo scroll della LazyColumn
     val listState = rememberLazyListState()
@@ -161,12 +169,12 @@ fun LogDisplayComposable(versionName: String, onStartServer: () -> Unit, onStopS
                         onClick = {
                             onStartServer()
                         },
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(4.dp)
                     ) {
                         Text(
                             text = "Start Server",
                             style = TextStyle(
-                                fontSize = 16.sp,
+                                fontSize = 8.sp,
                                 color = Color.Black,
                                 fontFamily = minecraftFont
                             ) // Font molto piccolo, testo giallo
@@ -176,12 +184,42 @@ fun LogDisplayComposable(versionName: String, onStartServer: () -> Unit, onStopS
                         onClick = {
                             onStopServer()
                         },
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(4.dp)
                     ) {
                         Text(
                             text = "Stop Server",
                             style = TextStyle(
-                                fontSize = 16.sp,
+                                fontSize = 8.sp,
+                                color = Color.Black,
+                                fontFamily = minecraftFont
+                            ) // Font molto piccolo, testo giallo
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            onStopAudioPlayer()
+                        },
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Text(
+                            text = "stop Audio",
+                            style = TextStyle(
+                                fontSize = 8.sp,
+                                color = Color.Black,
+                                fontFamily = minecraftFont
+                            ) // Font molto piccolo, testo giallo
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            onStopVideoPlayer()
+                        },
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Text(
+                            text = "stop Video",
+                            style = TextStyle(
+                                fontSize = 8.sp,
                                 color = Color.Black,
                                 fontFamily = minecraftFont
                             ) // Font molto piccolo, testo giallo
