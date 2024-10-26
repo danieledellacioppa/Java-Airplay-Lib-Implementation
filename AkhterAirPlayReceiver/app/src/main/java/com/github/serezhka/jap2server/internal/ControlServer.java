@@ -1,5 +1,6 @@
 package com.github.serezhka.jap2server.internal;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2server.AirplayDataConsumer;
 import com.github.serezhka.jap2server.internal.handler.control.FairPlayHandler;
 import com.github.serezhka.jap2server.internal.handler.control.HeartBeatHandler;
@@ -93,6 +94,7 @@ public class ControlServer implements Runnable {
         } finally {
             shutdown();
             log.info("Control server stopped by interrupt");
+            LogRepository.INSTANCE.addLog("ControlServer", "Control server stopped by interrupt");
         }
     }
 
@@ -102,6 +104,7 @@ public class ControlServer implements Runnable {
         }
         shutdown();
         log.info("Control server stopped by user");
+        LogRepository.INSTANCE.addLog("ControlServer", "Control server stopped by user");
     }
 
 
