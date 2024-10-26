@@ -32,7 +32,8 @@ public class AirPlayServer {
     }
 
     public void stop() {
-        airPlayBonjour.stop();
+        airPlayBonjour.stop(); // Ferma Bonjour
+        controlServer.stop();   // Ferma il server di controllo
     }
 
     // TODO On client connected / disconnected

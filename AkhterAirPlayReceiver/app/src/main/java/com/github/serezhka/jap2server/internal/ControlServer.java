@@ -8,6 +8,7 @@ import com.github.serezhka.jap2server.internal.handler.control.RTSPHandler;
 import com.github.serezhka.jap2server.internal.handler.mirroring.MirroringHandler;
 import com.github.serezhka.jap2server.internal.handler.session.SessionManager;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -39,6 +40,9 @@ public class ControlServer implements Runnable {
     private final HeartBeatHandler heartBeatHandler;
 
     private final int airTunesPort;
+    private Channel serverChannel;  // Aggiungi questa variabile per tracciare il canale del server
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
 
     public ControlServer(int airPlayPort, int airTunesPort, AirplayDataConsumer airplayDataConsumer) {
         this.airTunesPort = airTunesPort;
@@ -52,8 +56,8 @@ public class ControlServer implements Runnable {
     @Override
     public void run() {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
-        EventLoopGroup bossGroup = eventLoopGroup();
-        EventLoopGroup workerGroup = eventLoopGroup();
+        bossGroup = eventLoopGroup();
+        workerGroup = eventLoopGroup();
         try {
             serverBootstrap
                     .group(bossGroup, workerGroup)
@@ -77,13 +81,35 @@ public class ControlServer implements Runnable {
                     .childOption(ChannelOption.SO_REUSEADDR, true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             ChannelFuture channelFuture = serverBootstrap.bind().sync();
+            serverChannel = channelFuture.channel();  // Salva il canale del server
             log.info("Control server listening on port: {}", airTunesPort);
-            channelFuture.channel().closeFuture().sync();
+//            channelFuture.channel().closeFuture().sync();
+
+            // Aggiungi il metodo closeFuture().sync() per bloccare il thread principale
+            // e attendere che il canale del server venga chiuso
+            serverChannel.closeFuture().sync();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            log.info("Control server stopped");
+            shutdown();
+            log.info("Control server stopped by interrupt");
+        }
+    }
+
+    public void stop() {
+        if (serverChannel != null) {
+            serverChannel.close();  // Chiude il canale del server
+        }
+        shutdown();
+        log.info("Control server stopped by user");
+    }
+
+
+    private void shutdown() {
+        if (bossGroup != null && !bossGroup.isShuttingDown()) {
             bossGroup.shutdownGracefully();
+        }
+        if (workerGroup != null && !workerGroup.isShuttingDown()) {
             workerGroup.shutdownGracefully();
         }
     }
