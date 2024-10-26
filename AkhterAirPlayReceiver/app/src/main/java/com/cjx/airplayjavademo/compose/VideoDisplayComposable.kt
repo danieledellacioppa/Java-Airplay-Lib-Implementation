@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,8 +48,10 @@ import java.time.format.DateTimeFormatter
 fun VideoDisplayComposable(
     callback: SurfaceHolder.Callback,
     isConnectionActive: Boolean,
-    versionName: String
-) {
+    versionName: String,
+    onStartServer: () -> Unit, // Funzione per avviare il server
+    onStopServer: () -> Unit // Funzione per fermare il server
+)  {
     Box(modifier = Modifier.fillMaxSize()) {
         if (isConnectionActive) {
             // Controlliamo se il SurfaceView è già attivo prima di inizializzarlo nuovamente
@@ -87,13 +90,13 @@ fun VideoDisplayComposable(
                 )
             )
         } else {
-            LogDisplayComposable(versionName)
+            LogDisplayComposable(versionName, onStartServer, onStopServer)
         }
     }
 }
 
 @Composable
-fun LogDisplayComposable(versionName: String) {
+fun LogDisplayComposable(versionName: String, onStartServer: () -> Unit, onStopServer: () -> Unit) {
     val logMessages = remember { LogRepository.getLogs() }
     // Crea un LazyListState per monitorare e controllare lo scroll della LazyColumn
     val listState = rememberLazyListState()
@@ -149,6 +152,37 @@ fun LogDisplayComposable(versionName: String) {
                             style = TextStyle(
                                 fontSize = 16.sp,
                                 color = Color(0xFFFF9800),
+                                fontFamily = minecraftFont
+                            ) // Font molto piccolo, testo giallo
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            onStartServer()
+                        },
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text(
+                            text = "Start Server",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = Color.Black,
+                                fontFamily = minecraftFont
+                            ) // Font molto piccolo, testo giallo
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            onStopServer()
+                        },
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text(
+                            text = "Stop Server",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = Color.Black,
                                 fontFamily = minecraftFont
                             ) // Font molto piccolo, testo giallo
                         )

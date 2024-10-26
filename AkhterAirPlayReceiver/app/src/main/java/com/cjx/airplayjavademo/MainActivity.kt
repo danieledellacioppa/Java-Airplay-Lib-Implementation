@@ -64,6 +64,7 @@ import java.util.LinkedList
 class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private lateinit var airPlayServer: AirPlayServer
+    private var serverThread: Thread? = null // Thread per avviare il server manualmente
     private var mVideoPlayer: VideoPlayer? = null
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
@@ -86,7 +87,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         window.navigationBarColor = Gray40.toArgb()
         setContent {
             BioAuthenticatorTheme {
-                VideoDisplayComposable(this@MainActivity, isConnectionActive, versionName)
+                VideoDisplayComposable(this@MainActivity, isConnectionActive, versionName, ::startServer, ::stopServer)
             }
         }
         LogRepository.addLog(TAG, "onCreate: AirPlay server initialized. Version: $versionName")
@@ -104,14 +105,31 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
         airPlayServer = AirPlayServer("AKHTER:$deviceModel", 7000, 49152, airplayDataConsumer)
 
-        Thread(Runnable {
-            try {
-                airPlayServer.start()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }, "start-server-thread").start()
     }
+
+    fun startServer() {
+        if (serverThread == null || !serverThread!!.isAlive) {
+            serverThread = Thread(Runnable {
+                try {
+                    airPlayServer.start()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }, "start-server-thread")
+            serverThread?.start()
+            LogRepository.addLog(TAG, "AirPlay server started.")
+        }
+    }
+
+    fun stopServer() {
+        try {
+            airPlayServer.stop()
+            LogRepository.addLog(TAG, "AirPlay server stopped.")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
 
     override fun onStop() {
         super.onStop()
@@ -185,17 +203,8 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         Log.d(TAG, "surfaceDestroyed: Surface destroyed.")
 
-        //if worst comes to worst, we can try to disconnect from the wifi network
-//        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-//        val wifiInfo = wifiManager.connectionInfo
-//        val networkId = wifiInfo.networkId
-
         // Rilascia tutte le risorse legate al VideoPlayer
         if (mVideoPlayer != null) {
-//            wifiManager.disconnect()
-//            wifiManager.disableNetwork(networkId)
-//            wifiManager.isWifiEnabled = false
-//            wifiManager.reconnect()
             mVideoPlayer?.release()  // Usa il nuovo metodo release per pulire le risorse
             mVideoPlayer = null  // Imposta a null il riferimento per indicare che non c'è un VideoPlayer attivo
         }
