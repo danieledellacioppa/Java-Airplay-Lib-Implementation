@@ -1,5 +1,9 @@
 package com.github.serezhka.jap2lib;
 
+import android.util.Log;
+
+import com.cjx.airplayjavademo.tools.LogRepository;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -13,7 +17,7 @@ class FairPlayVideoDecryptor {
     private final byte[] sharedSecret;
     private final String streamConnectionID;
 
-    private final Cipher aesCtrDecrypt;
+    private Cipher aesCtrDecrypt; // Rendi non finale per permettere il reset nel release
     private final byte[] og = new byte[16];
 
     private int nextDecryptCount;
@@ -73,5 +77,20 @@ class FairPlayVideoDecryptor {
         System.arraycopy(hash2, 0, decryptAesIV, 0, 16);
 
         aesCtrDecrypt.init(Cipher.DECRYPT_MODE, new SecretKeySpec(decryptAesKey, "AES"), new IvParameterSpec(decryptAesIV));
+    }
+
+
+    public void release() {
+        // Pulisci i dati sensibili
+        Arrays.fill(og, (byte) 0);
+        nextDecryptCount = 0;
+
+        // Rilascia il Cipher
+        if (aesCtrDecrypt != null) {
+            aesCtrDecrypt = null;
+        }
+
+        Log.d("FairPlayVideoDecryptor", "Resources successfully released.");
+        LogRepository.INSTANCE.addLog("FairPlayVideoDecryptor", "Resources successfully released.");
     }
 }

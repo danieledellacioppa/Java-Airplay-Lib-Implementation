@@ -1,5 +1,6 @@
 package com.github.serezhka.jap2server.internal.handler.session;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2lib.AirPlay;
 
 public class Session {
@@ -44,6 +45,11 @@ public class Session {
             airPlayReceiverThread = null;
         }
         // TODO destroy fair play video decryptor
+        // Controlla e distrugge il decryptor di FairPlay, se necessario
+        if (airPlay != null) {
+            airPlay.releaseVideoDecryptor(); // Assicurati che questo metodo esista o modificalo come necessario
+            LogRepository.INSTANCE.addLog("Session", "FairPlay video decryptor destroyed.");
+        }
     }
 
     public void stopAudio() {

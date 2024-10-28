@@ -2,6 +2,7 @@ package com.github.serezhka.jap2lib;
 
 import android.util.Log;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2lib.rtsp.MediaStreamInfo;
 
 import java.io.InputStream;
@@ -151,5 +152,14 @@ public class AirPlay {
 
     public void printPlist(String methodName, InputStream inputStream) {
         rtsp.printPlist(methodName, inputStream);
+    }
+
+    public void releaseVideoDecryptor() {
+        if (fairPlayVideoDecryptor != null) {
+            fairPlayVideoDecryptor.release();
+            fairPlayVideoDecryptor = null;
+            Log.d("AirPlay", "FairPlay video decryptor released.");
+            LogRepository.INSTANCE.addLog("AirPlay", "FairPlay video decryptor released.");
+        }
     }
 }
