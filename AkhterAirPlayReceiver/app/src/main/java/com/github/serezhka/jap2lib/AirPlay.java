@@ -154,12 +154,17 @@ public class AirPlay {
         rtsp.printPlist(methodName, inputStream);
     }
 
-    public void releaseVideoDecryptor() {
+    // Aggiungi questo metodo in AirPlay
+    public void releaseDecryptors() {
         if (fairPlayVideoDecryptor != null) {
-            fairPlayVideoDecryptor.release();
             fairPlayVideoDecryptor = null;
             Log.d("AirPlay", "FairPlay video decryptor released.");
             LogRepository.INSTANCE.addLog("AirPlay", "FairPlay video decryptor released.");
+        }
+        if (fairPlayAudioDecryptor != null) {
+            fairPlayAudioDecryptor = null;
+            Log.d("AirPlay", "FairPlay audio decryptor released.");
+            LogRepository.INSTANCE.addLog("AirPlay", "FairPlay audio decryptor released.");
         }
     }
 }

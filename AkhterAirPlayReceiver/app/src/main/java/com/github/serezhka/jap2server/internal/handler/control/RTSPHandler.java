@@ -129,19 +129,28 @@ public class RTSPHandler extends ControlHandler {
             Log.d("RTSPHandler", "TEARDOWN: request was " + request.content());
             LogRepository.INSTANCE.addLog(TAG, "TEARDOWN: request was " + request.content());
 
-                MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
+            MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
             if (mediaStreamInfo != null) {
                 switch (mediaStreamInfo.getStreamType()) {
                     case AUDIO:
                         session.stopAudio();
+                        ctx.flush();
+                        LogRepository.INSTANCE.addLog(TAG, "Audio session stopped.");
+                        Log.d("RTSPHandler", "Audio session stopped.");
                         break;
                     case VIDEO:
                         session.stopMirroring();
+                        ctx.flush();
+                        LogRepository.INSTANCE.addLog(TAG, "Mirroring session stopped.");
+                        Log.d("RTSPHandler", "Mirroring session stopped.");
                         break;
                 }
             } else {
                 session.stopAudio();
                 session.stopMirroring();
+                ctx.flush();
+                LogRepository.INSTANCE.addLog(TAG, "Audio and mirroring sessions stopped.");
+                Log.d("RTSPHandler", "Audio and mirroring sessions stopped.");
             }
             return sendResponse(ctx, request, response);
         } else if ("POST".equals(request.method().toString()) && request.uri().equals("/audioMode")) {

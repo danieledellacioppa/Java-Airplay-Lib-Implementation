@@ -47,8 +47,8 @@ public class Session {
         // TODO destroy fair play video decryptor
         // Controlla e distrugge il decryptor di FairPlay, se necessario
         if (airPlay != null) {
-            airPlay.releaseVideoDecryptor(); // Assicurati che questo metodo esista o modificalo come necessario
-            LogRepository.INSTANCE.addLog("Session", "FairPlay video decryptor destroyed.");
+            airPlay.releaseDecryptors(); // Assicurati che questo metodo esista o modificalo come necessario
+            LogRepository.INSTANCE.addLog("Session", "airPlay.releaseDecryptors()");
         }
     }
 
