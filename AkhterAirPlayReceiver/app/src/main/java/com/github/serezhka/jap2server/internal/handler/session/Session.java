@@ -1,5 +1,7 @@
 package com.github.serezhka.jap2server.internal.handler.session;
 
+import android.util.Log;
+
 import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2lib.AirPlay;
 
@@ -21,14 +23,20 @@ public class Session {
 
     public void setAirPlayReceiverThread(Thread airPlayReceiverThread) {
         this.airPlayReceiverThread = airPlayReceiverThread;
+        Log.d("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread);
+        LogRepository.INSTANCE.addLog("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread);
     }
 
     public void setAudioReceiverThread(Thread audioReceiverThread) {
         this.audioReceiverThread = audioReceiverThread;
+        Log.d("Session", "setAudioReceiverThread: " + audioReceiverThread);
+        LogRepository.INSTANCE.addLog("Session", "setAudioReceiverThread: " + audioReceiverThread);
     }
 
     public void setAudioControlServerThread(Thread audioControlServerThread) {
         this.audioControlServerThread = audioControlServerThread;
+        Log.d("Session", "setAudioControlServerThread: " + audioControlServerThread);
+        LogRepository.INSTANCE.addLog("Session", "setAudioControlServerThread: " + audioControlServerThread);
     }
 
     public boolean isMirroringActive() {
