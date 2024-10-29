@@ -51,6 +51,12 @@ public class RTSPHandler extends ControlHandler {
         DefaultFullHttpResponse response = createResponseForRequest(request);
         if (RtspMethods.SETUP.equals(request.method())) {
 
+            // Controllo se una sessione di mirroring è già attiva
+            if (session.isMirroringActive()) {
+                Log.d(TAG, "Session already active. Terminating previous session...");
+                session.stopMirroring();  // Chiude eventuali sessioni aperte
+            }
+
             MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
             if (mediaStreamInfo == null) {
                 request.content().resetReaderIndex();
@@ -98,6 +104,9 @@ public class RTSPHandler extends ControlHandler {
                         Thread airPlayReceiverThread = new Thread(airPlayReceiver);
                         session.setAirPlayReceiverThread(airPlayReceiverThread);
                         airPlayReceiverThread.start();
+
+                        Log.d("RTSPHandler", "New MirroringReceiver thread started with ID: " + airPlayReceiverThread.getId());
+                        LogRepository.INSTANCE.addLog("RTSPHandler", "New MirroringReceiver thread started with ID: " + airPlayReceiverThread.getId());
 
                         session.getAirPlay().rtspSetupVideo(new ByteBufOutputStream(response.content()), airPlayPort, airTunesPort, 7011);
                         break;

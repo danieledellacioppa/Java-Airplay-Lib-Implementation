@@ -1,5 +1,7 @@
 package com.github.serezhka.jap2server;
 
+import android.util.Log;
+
 import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2lib.AirPlayBonjour;
 import com.github.serezhka.jap2server.internal.ControlServer;
@@ -9,6 +11,7 @@ public class AirPlayServer {
     private final AirPlayBonjour airPlayBonjour;
     private final AirplayDataConsumer airplayDataConsumer;
     private final ControlServer controlServer;
+    private Thread controlServerThread;
     private final String TAG = "AirPlayServer";
 
     private final String serverName;
@@ -28,12 +31,23 @@ public class AirPlayServer {
     public void start() throws Exception {
         airPlayBonjour.start(airPlayPort, airTunesPort);
         LogRepository.INSTANCE.addLog(TAG, serverName + " started on ports: " + airPlayPort + ", " + airTunesPort);
-        new Thread(controlServer).start();
+//        new Thread(controlServer).start();
+        controlServerThread = new Thread(controlServer);
+        controlServerThread.start();
     }
 
     public void stop() {
         airPlayBonjour.stop(); // Ferma Bonjour
-        controlServer.stop();   // Ferma il server di controllo
+        if (controlServerThread != null) {
+            controlServer.stop();
+            try {
+                controlServerThread.join();  // attende la terminazione
+                Log.d(TAG, "ControlServer stopped");
+                LogRepository.INSTANCE.addLog(TAG, "ControlServer stopped");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();  // gestisce l'interruzione
+            }
+        }
     }
 
     // TODO On client connected / disconnected

@@ -23,20 +23,20 @@ public class Session {
 
     public void setAirPlayReceiverThread(Thread airPlayReceiverThread) {
         this.airPlayReceiverThread = airPlayReceiverThread;
-        Log.d("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread);
-        LogRepository.INSTANCE.addLog("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread);
+        Log.d("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread.getId());
+        LogRepository.INSTANCE.addLog("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread.getId());
     }
 
     public void setAudioReceiverThread(Thread audioReceiverThread) {
         this.audioReceiverThread = audioReceiverThread;
-        Log.d("Session", "setAudioReceiverThread: " + audioReceiverThread);
-        LogRepository.INSTANCE.addLog("Session", "setAudioReceiverThread: " + audioReceiverThread);
+        Log.d("Session", "setAudioReceiverThread: " + audioReceiverThread.getId());
+        LogRepository.INSTANCE.addLog("Session", "setAudioReceiverThread: " + audioReceiverThread.getId());
     }
 
     public void setAudioControlServerThread(Thread audioControlServerThread) {
         this.audioControlServerThread = audioControlServerThread;
-        Log.d("Session", "setAudioControlServerThread: " + audioControlServerThread);
-        LogRepository.INSTANCE.addLog("Session", "setAudioControlServerThread: " + audioControlServerThread);
+        Log.d("Session", "setAudioControlServerThread: " + audioControlServerThread.getId());
+        LogRepository.INSTANCE.addLog("Session", "setAudioControlServerThread: " + audioControlServerThread.getId());
     }
 
     public boolean isMirroringActive() {
@@ -49,6 +49,8 @@ public class Session {
 
     public void stopMirroring() {
         if (airPlayReceiverThread != null) {
+            Log.d("Session", "Stopping MirroringReceiver with Thread ID: " + airPlayReceiverThread.getId());
+            LogRepository.INSTANCE.addLog("Session", "Stopping MirroringReceiver with Thread ID: " + airPlayReceiverThread.getId());
             airPlayReceiverThread.interrupt();
             airPlayReceiverThread = null;
         }
@@ -70,4 +72,5 @@ public class Session {
             audioControlServerThread = null;
         }
     }
+
 }
