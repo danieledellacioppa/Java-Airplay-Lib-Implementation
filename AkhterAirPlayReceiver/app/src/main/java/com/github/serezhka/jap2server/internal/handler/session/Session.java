@@ -73,4 +73,7 @@ public class Session {
         }
     }
 
+    public Thread getAirPlayReceiverThread() {
+        return airPlayReceiverThread;
+    }
 }

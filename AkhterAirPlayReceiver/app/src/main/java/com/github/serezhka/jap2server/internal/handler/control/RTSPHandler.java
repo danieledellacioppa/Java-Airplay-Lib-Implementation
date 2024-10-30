@@ -55,6 +55,20 @@ public class RTSPHandler extends ControlHandler {
             if (session.isMirroringActive()) {
                 Log.d(TAG, "Session already active. Terminating previous session...");
                 session.stopMirroring();  // Chiude eventuali sessioni aperte
+
+                // Attendi che il thread precedente termini
+                Thread previousThread = session.getAirPlayReceiverThread();
+                if (previousThread != null && previousThread.isAlive()) {
+                    try {
+                        Log.d(TAG, "Waiting for previous MirroringReceiver thread to terminate...");
+                        LogRepository.INSTANCE.addLog(TAG, "Waiting for previous MirroringReceiver thread to terminate...");
+                        previousThread.join();
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "Interrupted while waiting for previous MirroringReceiver thread to terminate", e);
+                        LogRepository.INSTANCE.addLog(TAG, "Interrupted while waiting for previous MirroringReceiver thread to terminate");
+                        Thread.currentThread().interrupt();
+                    }
+                }
             }
 
             MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));

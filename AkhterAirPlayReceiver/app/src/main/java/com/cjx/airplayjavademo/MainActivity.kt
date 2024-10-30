@@ -117,14 +117,17 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                 }
             }, "start-server-thread")
             serverThread?.start()
-            LogRepository.addLog(TAG, "AirPlay server started.")
+            LogRepository.addLog(TAG, "AirPlay server started with threadId: ${serverThread?.id}")
         }
     }
 
     fun stopServer() {
         try {
-            airPlayServer.stop()
-            LogRepository.addLog(TAG, "AirPlay server stopped.")
+            LogRepository.addLog(TAG, "Stopping AirPlay server with threadId: ${serverThread?.id}")
+            airPlayServer.stop() // Ferma il server AirPlay
+            serverThread?.join() // Attende la terminazione del thread
+            serverThread = null
+            LogRepository.addLog(TAG, "AirPlay server stopped and thread terminated.")
         } catch (e: Exception) {
             e.printStackTrace()
         }
