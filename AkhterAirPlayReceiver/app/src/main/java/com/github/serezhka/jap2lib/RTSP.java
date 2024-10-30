@@ -113,7 +113,8 @@ class RTSP {
         // Verifica iniziale della disponibilità di dati nello stream
         if (rtspSetupPayload == null || rtspSetupPayload.available() == 0) {
             log.error("RTSP setup payload is empty or null");
-            Log.d(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null");
+            Log.e(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null");
+            LogRepository.INSTANCE.addLog(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null");
             return null;
         }
 
