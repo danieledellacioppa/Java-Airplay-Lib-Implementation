@@ -65,6 +65,8 @@ public class MirroringReceiver implements Runnable {
 
     private final int port;
     private final MirroringHandler mirroringHandler;
+    private volatile boolean running = true; // Flag per controllare lo stato di esecuzione
+    private ChannelFuture channelFuture;
     private static final String TAG = "MirroringReceiver";
 
     public MirroringReceiver(int port, MirroringHandler mirroringHandler) {
@@ -81,7 +83,6 @@ public class MirroringReceiver implements Runnable {
         EventLoopGroup bossGroup = eventLoopGroup();
         EventLoopGroup workerGroup = eventLoopGroup();
         ServerBootstrap serverBootstrap = new ServerBootstrap();
-        ChannelFuture channelFuture = null;
 
         try {
             serverBootstrap
@@ -114,9 +115,12 @@ public class MirroringReceiver implements Runnable {
             }
 
             // Avvia il server e attende la chiusura del canale
-            channelFuture = serverBootstrap.bind().sync();
-            Log.d(TAG, "Mirroring receiver" + threadID + " started on port: " + port);
-            LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver" + threadID + " started on port: " + port);
+            if (running){
+                channelFuture = serverBootstrap.bind().sync();
+                Log.d(TAG, "Mirroring receiver" + threadID + " started on port: " + port);
+                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver" + threadID + " started on port: " + port);
+            }
+
         } catch (InterruptedException e) {
             Log.e(TAG, "Mirroring receiver " + threadID + " interrupted during bind", e);
             Thread.currentThread().interrupt();
@@ -129,17 +133,21 @@ public class MirroringReceiver implements Runnable {
         // Blocco 3: Attesa della chiusura del canale
         try {
             // Attende che il canale si chiuda
-            channelFuture.channel().closeFuture().sync();
+            if (running){
+                channelFuture.channel().closeFuture().sync();
+                Log.d(TAG, "Mirroring receiver" + threadID + " channel closed");
+                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver" + threadID + " channel closed");
+            }
         } catch (InterruptedException e) {
             Log.e(TAG, "Mirroring receiver" + threadID + " interrupted during setup", e);
             Thread.currentThread().interrupt();
-            LogRepository.INSTANCE.setConnection(false);
             System.gc();
             } catch (Exception e) {
                 Log.e(TAG, "Error starting mirroring receiver" + threadID, e);
             } finally {
-            Log.e(TAG, "Mirroring receiver" + threadID + " shutting down...");
-            closeChannel(channelFuture);
+            LogRepository.INSTANCE.setConnection(false);
+            Log.w(TAG, "Mirroring receiver" + threadID + " shutting down...");
+            closeChannel();
             // Chiusura sincrona dei gruppi di eventi con ritardo per liberare risorse
             bossGroup.shutdownGracefully().syncUninterruptibly();
             workerGroup.shutdownGracefully().syncUninterruptibly();
@@ -148,6 +156,13 @@ public class MirroringReceiver implements Runnable {
         }
 
     }
+
+    public void shutdown() {
+        running = false;  // Interrompe il ciclo `sync` ordinatamente
+        closeChannel();   // Chiude il canale in modo sicuro
+        Log.d(TAG, "Shutdown initiated for MirroringReceiver.");
+    }
+
 
     // Metodo per controllare se la porta è libera
     private boolean isPortAvailable(int port) {
@@ -160,13 +175,15 @@ public class MirroringReceiver implements Runnable {
     }
 
     // Metodo per chiudere il canale in modo sicuro
-    private void closeChannel(ChannelFuture channelFuture) {
+    private void closeChannel() {
         if (channelFuture != null && channelFuture.channel().isOpen()) {
             try {
                 channelFuture.channel().close().sync();
                 Log.d(TAG, "Channel closed successfully "+ threadID);
+                LogRepository.INSTANCE.addLog(TAG, "Channel closed successfully "+ threadID);
             } catch (InterruptedException e) {
                 Log.e(TAG, "Failed to close the channel "+ threadID, e);
+                LogRepository.INSTANCE.addLog(TAG, "Failed to close the channel "+ threadID);
                 Thread.currentThread().interrupt();
             }
         }

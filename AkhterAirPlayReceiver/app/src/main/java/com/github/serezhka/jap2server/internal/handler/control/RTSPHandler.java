@@ -116,7 +116,7 @@ public class RTSPHandler extends ControlHandler {
                         MirroringHandler mirroringHandler = new MirroringHandler(session.getAirPlay(), airplayDataConsumer);
                         MirroringReceiver airPlayReceiver = new MirroringReceiver(airPlayPort, mirroringHandler);
                         Thread airPlayReceiverThread = new Thread(airPlayReceiver);
-                        session.setAirPlayReceiverThread(airPlayReceiverThread);
+                        session.setAirPlayReceiverThread(airPlayReceiverThread, airPlayReceiver);
                         airPlayReceiverThread.start();
 
                         Log.d("RTSPHandler", "New MirroringReceiver thread started with ID: " + airPlayReceiverThread.getId());
