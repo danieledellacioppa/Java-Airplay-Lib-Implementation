@@ -94,7 +94,7 @@ public class ControlServer implements Runnable {
         } finally {
             shutdown();
             log.info("Control server stopped by interrupt");
-            LogRepository.INSTANCE.addLog("ControlServer", "Control server stopped by interrupt");
+            LogRepository.INSTANCE.addLog("ControlServer", "Control server stopped by interrupt", 'W');
         }
     }
 
@@ -104,7 +104,7 @@ public class ControlServer implements Runnable {
         }
         shutdown();
         log.info("Control server stopped by user");
-        LogRepository.INSTANCE.addLog("ControlServer", "Control server stopped by user");
+        LogRepository.INSTANCE.addLog("ControlServer", "Control server stopped by user", 'W');
     }
 
 

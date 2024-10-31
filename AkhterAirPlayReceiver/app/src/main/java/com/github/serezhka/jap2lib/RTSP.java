@@ -114,7 +114,7 @@ class RTSP {
         if (rtspSetupPayload == null || rtspSetupPayload.available() == 0) {
             log.error("RTSP setup payload is empty or null");
             Log.e(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null");
-            LogRepository.INSTANCE.addLog(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null");
+            LogRepository.INSTANCE.addLog(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null", 'E');
             return null;
         }
 
@@ -300,7 +300,7 @@ class RTSP {
         try {
             NSDictionary plist = (NSDictionary) BinaryPropertyListParser.parse(inputStream);
             Log.i(TAG, rtspMethod + " plist 01: " + plist.toXMLPropertyList());
-            LogRepository.INSTANCE.addLog(TAG, rtspMethod + " plist 01: " + plist.toXMLPropertyList());
+            LogRepository.INSTANCE.addLog(TAG, rtspMethod + " plist 01: " + plist.toXMLPropertyList(), 'I');
         } catch (Exception e) {
             StringBuilder textBuilder = new StringBuilder();
             try (Reader reader = new BufferedReader(new InputStreamReader
@@ -310,12 +310,12 @@ class RTSP {
                     textBuilder.append((char) c);
                 }
                 Log.i(TAG, rtspMethod + " plist 02: " + textBuilder.toString());
-                LogRepository.INSTANCE.addLog(TAG, rtspMethod + " plist 02: " + textBuilder.toString());
+                LogRepository.INSTANCE.addLog(TAG, rtspMethod + " plist 02: " + textBuilder.toString(), 'I');
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
             Log.e(TAG, rtspMethod+ "--printPlist: ", e);
-            LogRepository.INSTANCE.addLog(TAG, rtspMethod + "--printPlist: " + e.getMessage());
+            LogRepository.INSTANCE.addLog(TAG, rtspMethod + "--printPlist: " + e.getMessage(), 'E');
 
         }
     }

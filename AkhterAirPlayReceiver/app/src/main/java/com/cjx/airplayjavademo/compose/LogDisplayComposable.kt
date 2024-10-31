@@ -218,14 +218,14 @@ fun LogDisplayComposable(
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(
-                                        Color(0x55FFEA00),
+                                        logMessages[index].type.color.copy(alpha = 0.3f),
                                         Color.Transparent
                                     )
                                 )
                             )
                         ,
                         style = TextStyle(
-                            color = Color.Yellow,
+                            color = logMessages[index].type.color, // Colore del testo
                             fontSize = 13.sp,
                             fontFamily = FontFamily.Monospace, // Imposta font monospace
 //                            lineHeight = 4.sp,

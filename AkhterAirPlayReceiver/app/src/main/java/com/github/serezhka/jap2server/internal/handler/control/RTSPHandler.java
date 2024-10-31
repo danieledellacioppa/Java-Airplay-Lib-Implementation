@@ -61,11 +61,11 @@ public class RTSPHandler extends ControlHandler {
                 if (previousThread != null && previousThread.isAlive()) {
                     try {
                         Log.d(TAG, "Waiting for previous MirroringReceiver thread to terminate...");
-                        LogRepository.INSTANCE.addLog(TAG, "Waiting for previous MirroringReceiver thread to terminate...");
+                        LogRepository.INSTANCE.addLog(TAG, "Waiting for previous MirroringReceiver thread to terminate...", 'W');
                         previousThread.join();
                     } catch (InterruptedException e) {
                         Log.e(TAG, "Interrupted while waiting for previous MirroringReceiver thread to terminate", e);
-                        LogRepository.INSTANCE.addLog(TAG, "Interrupted while waiting for previous MirroringReceiver thread to terminate");
+                        LogRepository.INSTANCE.addLog(TAG, "Interrupted while waiting for previous MirroringReceiver thread to terminate", 'E');
                         Thread.currentThread().interrupt();
                     }
                 }
@@ -120,7 +120,7 @@ public class RTSPHandler extends ControlHandler {
                         airPlayReceiverThread.start();
 
                         Log.d("RTSPHandler", "New MirroringReceiver thread started with ID: " + airPlayReceiverThread.getId());
-                        LogRepository.INSTANCE.addLog("RTSPHandler", "New MirroringReceiver thread started with ID: " + airPlayReceiverThread.getId());
+                        LogRepository.INSTANCE.addLog("RTSPHandler", "New MirroringReceiver thread started with ID: " + airPlayReceiverThread.getId(), 'I');
 
                         session.getAirPlay().rtspSetupVideo(new ByteBufOutputStream(response.content()), airPlayPort, airTunesPort, 7011);
                         break;
@@ -132,10 +132,10 @@ public class RTSPHandler extends ControlHandler {
             response.content().writeBytes(content);
             return sendResponse(ctx, request, response);
         } else if (RtspMethods.RECORD.equals(request.method())) {
-
-            session.getAirPlay().printPlist("RECORD ",new ByteBufInputStream(request.content()));
-            response.headers().add("Audio-Latency", "11025");
-            response.headers().add("Audio-Jack-Status", "connected; type=analog");
+//
+//            session.getAirPlay().printPlist("RECORD ",new ByteBufInputStream(request.content()));
+//            response.headers().add("Audio-Latency", "11025");
+//            response.headers().add("Audio-Jack-Status", "connected; type=analog");
             return sendResponse(ctx, request, response);
         } else if (RtspMethods.SET_PARAMETER.equals(request.method())) {
             session.getAirPlay().printPlist("SET_PARAMETER ",new ByteBufInputStream(request.content()));
@@ -150,7 +150,7 @@ public class RTSPHandler extends ControlHandler {
 
             Log.d("RTSPHandler", "TEARDOWN: session.getAirPlay().isPairVerified() = " + session.getAirPlay().isPairVerified());
             Log.d("RTSPHandler", "TEARDOWN: request was " + request.content());
-            LogRepository.INSTANCE.addLog(TAG, "TEARDOWN: request was " + request.content());
+            LogRepository.INSTANCE.addLog(TAG, "TEARDOWN: request was " + request.content(), 'I');
 
             MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
             if (mediaStreamInfo != null) {
@@ -158,13 +158,13 @@ public class RTSPHandler extends ControlHandler {
                     case AUDIO:
                         session.stopAudio();
                         ctx.flush();
-                        LogRepository.INSTANCE.addLog(TAG, "Audio session stopped.");
+                        LogRepository.INSTANCE.addLog(TAG, "Audio session stopped.", 'I');
                         Log.d("RTSPHandler", "Audio session stopped.");
                         break;
                     case VIDEO:
                         session.stopMirroring();
                         ctx.flush();
-                        LogRepository.INSTANCE.addLog(TAG, "Mirroring session stopped.");
+                        LogRepository.INSTANCE.addLog(TAG, "Mirroring session stopped.", 'I');
                         Log.d("RTSPHandler", "Mirroring session stopped.");
                         break;
                 }
@@ -172,7 +172,7 @@ public class RTSPHandler extends ControlHandler {
                 session.stopAudio();
                 session.stopMirroring();
                 ctx.flush();
-                LogRepository.INSTANCE.addLog(TAG, "Audio and mirroring sessions stopped.");
+                LogRepository.INSTANCE.addLog(TAG, "Audio and mirroring sessions stopped.", 'I');
                 Log.d("RTSPHandler", "Audio and mirroring sessions stopped.");
             }
             return sendResponse(ctx, request, response);

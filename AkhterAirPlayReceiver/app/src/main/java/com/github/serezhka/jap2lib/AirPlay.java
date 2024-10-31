@@ -159,12 +159,12 @@ public class AirPlay {
         if (fairPlayVideoDecryptor != null) {
             fairPlayVideoDecryptor = null;
             Log.d("AirPlay", "FairPlay video decryptor released.");
-            LogRepository.INSTANCE.addLog("AirPlay", "FairPlay video decryptor released.");
+            LogRepository.INSTANCE.addLog("AirPlay", "FairPlay video decryptor released.", 'I');
         }
         if (fairPlayAudioDecryptor != null) {
             fairPlayAudioDecryptor = null;
             Log.d("AirPlay", "FairPlay audio decryptor released.");
-            LogRepository.INSTANCE.addLog("AirPlay", "FairPlay audio decryptor released.");
+            LogRepository.INSTANCE.addLog("AirPlay", "FairPlay audio decryptor released.", 'I');
         }
     }
 }

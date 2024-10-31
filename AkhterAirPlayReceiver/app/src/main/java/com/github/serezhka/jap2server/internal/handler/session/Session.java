@@ -28,19 +28,19 @@ public class Session {
         this.airPlayReceiverThread = airPlayReceiverThread;
         this.mirroringReceiver = receiver;
         Log.d("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread.getId());
-        LogRepository.INSTANCE.addLog("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread.getId());
+        LogRepository.INSTANCE.addLog("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread.getId(), 'I');
     }
 
     public void setAudioReceiverThread(Thread audioReceiverThread) {
         this.audioReceiverThread = audioReceiverThread;
         Log.d("Session", "setAudioReceiverThread: " + audioReceiverThread.getId());
-        LogRepository.INSTANCE.addLog("Session", "setAudioReceiverThread: " + audioReceiverThread.getId());
+        LogRepository.INSTANCE.addLog("Session", "setAudioReceiverThread: " + audioReceiverThread.getId(), 'I');
     }
 
     public void setAudioControlServerThread(Thread audioControlServerThread) {
         this.audioControlServerThread = audioControlServerThread;
         Log.d("Session", "setAudioControlServerThread: " + audioControlServerThread.getId());
-        LogRepository.INSTANCE.addLog("Session", "setAudioControlServerThread: " + audioControlServerThread.getId());
+        LogRepository.INSTANCE.addLog("Session", "setAudioControlServerThread: " + audioControlServerThread.getId(), 'I');
     }
 
     public boolean isMirroringActive() {
@@ -76,7 +76,7 @@ public class Session {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 Log.e("Session", "Interrupted while waiting for MirroringReceiver to terminate", e);
-                LogRepository.INSTANCE.addLog("Session", "Interrupted while waiting for MirroringReceiver to terminate");
+                LogRepository.INSTANCE.addLog("Session", "Interrupted while waiting for MirroringReceiver to terminate", 'E');
             }
             mirroringReceiver = null;
             airPlayReceiverThread = null;

@@ -78,7 +78,7 @@ public class MirroringReceiver implements Runnable {
     @Override
     public void run() {
         Log.d(TAG, "Starting mirroring receiver instance: " + threadID);
-        LogRepository.INSTANCE.addLog(TAG, "Starting mirroring receiver instance: " + threadID);
+        LogRepository.INSTANCE.addLog(TAG, "Starting mirroring receiver instance: " + threadID, 'I');
 
         EventLoopGroup bossGroup = eventLoopGroup();
         EventLoopGroup workerGroup = eventLoopGroup();
@@ -99,7 +99,7 @@ public class MirroringReceiver implements Runnable {
                     .childOption(ChannelOption.SO_REUSEADDR, true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             Log.d(TAG, "ServerBootstrap configured for mirroring receiver " + threadID);
-            LogRepository.INSTANCE.addLog(TAG, "ServerBootstrap configured for mirroring receiver " + threadID);
+            LogRepository.INSTANCE.addLog(TAG, "ServerBootstrap configured for mirroring receiver " + threadID,'I');
         } catch (Exception e) {
             Log.e(TAG, "Error during ServerBootstrap configuration for mirroring receiver " + threadID, e);
             return;  // Termina l'esecuzione se c'è un errore di configurazione
@@ -110,15 +110,15 @@ public class MirroringReceiver implements Runnable {
 
             if (!isPortAvailable(port)) {
                 Log.e(TAG, "Port " + port + " is already in use. Exiting...");
-                LogRepository.INSTANCE.addLog(TAG, "Port " + port + " is already in use. Exiting...");
+                LogRepository.INSTANCE.addLog(TAG, "Port " + port + " is already in use. Exiting...", 'E');
                 return;
             }
 
             // Avvia il server e attende la chiusura del canale
             if (running){
                 channelFuture = serverBootstrap.bind().sync();
-                Log.d(TAG, "Mirroring receiver" + threadID + " started on port: " + port);
-                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver" + threadID + " started on port: " + port);
+                Log.d(TAG, "Mirroring receiver threadID: " + threadID + " started on port: " + port);
+                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver threadID: " + threadID + " started on port: " + port, 'I');
             }
 
         } catch (InterruptedException e) {
@@ -136,7 +136,7 @@ public class MirroringReceiver implements Runnable {
             if (running){
                 channelFuture.channel().closeFuture().sync();
                 Log.d(TAG, "Mirroring receiver" + threadID + " channel closed");
-                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver" + threadID + " channel closed");
+                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver" + threadID + " channel closed", 'I');
             }
         } catch (InterruptedException e) {
             Log.e(TAG, "Mirroring receiver" + threadID + " interrupted during setup", e);
@@ -180,10 +180,10 @@ public class MirroringReceiver implements Runnable {
             try {
                 channelFuture.channel().close().sync();
                 Log.d(TAG, "Channel closed successfully "+ threadID);
-                LogRepository.INSTANCE.addLog(TAG, "Channel closed successfully "+ threadID);
+                LogRepository.INSTANCE.addLog(TAG, "Channel closed successfully "+ threadID, 'I');
             } catch (InterruptedException e) {
                 Log.e(TAG, "Failed to close the channel "+ threadID, e);
-                LogRepository.INSTANCE.addLog(TAG, "Failed to close the channel "+ threadID);
+                LogRepository.INSTANCE.addLog(TAG, "Failed to close the channel "+ threadID, 'E');
                 Thread.currentThread().interrupt();
             }
         }

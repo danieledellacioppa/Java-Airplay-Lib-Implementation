@@ -140,7 +140,7 @@ public class VideoPlayer {
                 mDecoder.release();
             } catch (Exception e) {
                 Log.e(TAG, "Errore durante il rilascio del MediaCodec", e);
-                LogRepository.INSTANCE.addLog(TAG, "Errore durante il rilascio del MediaCodec");
+                LogRepository.INSTANCE.addLog(TAG, "Errore durante il rilascio del MediaCodec", 'E');
             }
         }
 
@@ -148,7 +148,7 @@ public class VideoPlayer {
             mDecodeThread.quitSafely();
             try {
                 mDecodeThread.join(); // Assicura che il thread si sia fermato
-                LogRepository.INSTANCE.addLog(TAG, "VideoPlayer thread stopped.");
+                LogRepository.INSTANCE.addLog(TAG, "VideoPlayer thread stopped.", 'W');
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 Log.e(TAG, "Errore durante l'interruzione di mDecodeThread", e);
@@ -157,7 +157,7 @@ public class VideoPlayer {
 
         packets.clear();
         Log.d(TAG, "Risorse VideoPlayer rilasciate.");
-        LogRepository.INSTANCE.addLog(TAG, "Risorse VideoPlayer rilasciate.");
+        LogRepository.INSTANCE.addLog(TAG, "Risorse VideoPlayer rilasciate.", 'I');
     }
 
     private void doDecode(NALPacket nalPacket) throws IllegalStateException {

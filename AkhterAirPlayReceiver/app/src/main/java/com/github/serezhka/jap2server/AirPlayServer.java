@@ -30,7 +30,7 @@ public class AirPlayServer {
 
     public void start() throws Exception {
         airPlayBonjour.start(airPlayPort, airTunesPort);
-        LogRepository.INSTANCE.addLog(TAG, serverName + " started on ports: " + airPlayPort + ", " + airTunesPort);
+        LogRepository.INSTANCE.addLog(TAG, serverName + " started on ports: " + airPlayPort + ", " + airTunesPort, 'I');
 //        new Thread(controlServer).start();
         controlServerThread = new Thread(controlServer);
         controlServerThread.start();
@@ -43,7 +43,7 @@ public class AirPlayServer {
             try {
                 controlServerThread.join();  // attende la terminazione
                 Log.d(TAG, "ControlServer stopped");
-                LogRepository.INSTANCE.addLog(TAG, "ControlServer stopped");
+                LogRepository.INSTANCE.addLog(TAG, "ControlServer stopped", 'W');
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();  // gestisce l'interruzione
             }

@@ -77,11 +77,11 @@ public class AudioPlayer extends Thread {
             mTrack.stop();
             mTrack.release();
             mTrack = null;
-            LogRepository.INSTANCE.addLog(TAG, "AudioPlayer stopped.");
+            LogRepository.INSTANCE.addLog(TAG, "AudioPlayer stopped.", 'I');
         }
         packets.clear();
         interrupt(); // Interrompe il thread corrente se è in attesa
-        LogRepository.INSTANCE.addLog(TAG, "AudioPlayer thread stopped.");
+        LogRepository.INSTANCE.addLog(TAG, "AudioPlayer thread stopped.", 'I');
     }
 
 }

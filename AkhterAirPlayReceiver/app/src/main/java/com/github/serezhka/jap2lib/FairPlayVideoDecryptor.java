@@ -91,6 +91,6 @@ class FairPlayVideoDecryptor {
         }
 
         Log.d("FairPlayVideoDecryptor", "Resources successfully released.");
-        LogRepository.INSTANCE.addLog("FairPlayVideoDecryptor", "Resources successfully released.");
+        LogRepository.INSTANCE.addLog("FairPlayVideoDecryptor", "Resources successfully released.", 'I');
     }
 }
