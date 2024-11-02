@@ -1,6 +1,7 @@
 package com.cjx.airplayjavademo.tools
 
 import android.media.MediaDrm.LogMessage
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +43,13 @@ object LogRepository {
             else -> Color.Black
         }
         logMessages.add(LogEntry(currentTime, tag, message, MessageType(type.toString(), color)))
+
+        when (type) {
+            'I' -> Log.i(tag, message)
+            'W' -> Log.w(tag, message)
+            'E' -> Log.e(tag, message)
+            else -> Log.d(tag, message)
+        }
     }
 
     // Restituisce la lista di log

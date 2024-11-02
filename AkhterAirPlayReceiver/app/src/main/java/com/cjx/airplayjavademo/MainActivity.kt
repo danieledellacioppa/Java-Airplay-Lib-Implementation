@@ -161,6 +161,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
             if (!isConnectionActive) {
                 isConnectionActive = true
                 Log.d(TAG, "Connection active: received first video packet.")
+                LogRepository.addLog(TAG, "Connection active: received first video packet.")
             }
 
             val nalPacket = NALPacket().apply {
