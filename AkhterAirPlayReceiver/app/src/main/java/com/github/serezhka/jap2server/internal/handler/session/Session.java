@@ -81,6 +81,11 @@ public class Session {
             mirroringReceiver = null;
             airPlayReceiverThread = null;
             Log.d("Session", "MirroringReceiver stopped.");
+
+            if (airPlay != null) {
+                airPlay.releaseDecryptors(); // Assicurati che questo metodo esista o modificalo come necessario
+                LogRepository.INSTANCE.addLog("Session", "airPlay.releaseDecryptors()", 'I');
+            }
         }
     }
 
