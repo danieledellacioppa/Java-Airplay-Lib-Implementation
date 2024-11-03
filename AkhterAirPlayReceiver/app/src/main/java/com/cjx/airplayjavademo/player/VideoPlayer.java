@@ -84,7 +84,7 @@ public class VideoPlayer {
         }
     }
 
-    public void addPacker(NALPacket nalPacket) {
+    public void addPacket(NALPacket nalPacket) {
         try {
             packets.put(nalPacket);
         } catch (InterruptedException e) {

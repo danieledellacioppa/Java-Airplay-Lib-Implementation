@@ -150,7 +150,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         super.onStop()
         mAudioPlayer?.stopPlay()
         mAudioPlayer = null
-        mVideoPlayer?.stopVideoPlay()
+        mVideoPlayer?.stopPlayer()
         mVideoPlayer = null
         airPlayServer.stop()
     }
@@ -170,9 +170,9 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
             if (mVideoPlayer != null) {
                 while (mVideoCacheList.isNotEmpty()) {
-                    mVideoPlayer?.addPacker(mVideoCacheList.removeFirst())
+                    mVideoPlayer?.addPacket(mVideoCacheList.removeFirst())
                 }
-                mVideoPlayer?.addPacker(nalPacket)
+                mVideoPlayer?.addPacket(nalPacket)
             } else {
                 mVideoCacheList.add(nalPacket)
             }
