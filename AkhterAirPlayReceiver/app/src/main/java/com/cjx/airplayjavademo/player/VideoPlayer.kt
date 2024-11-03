@@ -4,7 +4,6 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import android.view.Surface
 import com.cjx.airplayjavademo.model.NALPacket
 import com.cjx.airplayjavademo.tools.LogRepository
@@ -124,7 +123,6 @@ class VideoPlayer(private val mSurface: Surface) {
         }
 
         packets.clear()
-        Log.d(TAG, "Risorse VideoPlayer rilasciate.")
         LogRepository.addLog(TAG, "Risorse VideoPlayer rilasciate.", 'I')
     }
 }
