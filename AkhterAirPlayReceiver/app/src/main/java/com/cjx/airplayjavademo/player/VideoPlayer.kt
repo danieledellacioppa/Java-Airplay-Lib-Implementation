@@ -1,150 +1,130 @@
-//package com.cjx.airplayjavademo.player
-//
-//import android.annotation.SuppressLint
-//import android.media.MediaCodec
-//import android.media.MediaFormat
-//import android.os.Handler
-//import android.os.HandlerThread
-//import android.util.Log
-//import android.view.Surface
-//import com.cjx.airplayjavademo.model.NALPacket
-//import com.cjx.airplayjavademo.tools.LogRepository
-//import java.nio.ByteBuffer
-//import java.util.concurrent.BlockingQueue
-//import java.util.concurrent.LinkedBlockingQueue
-//
-//class VideoPlayer(private val surface: Surface, private val width: Int = 540, private val height: Int = 960) {
-//    companion object {
-//        private const val TAG = "VideoPlayer"
-//        private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
-//    }
-//
-//    private val bufferInfo = MediaCodec.BufferInfo()
-//    private var decoder: MediaCodec? = null
-//    private val packets: BlockingQueue<NALPacket> = LinkedBlockingQueue(500)
-//    private val decodeThread = HandlerThread("VideoDecoder").apply { start() }
-//
-//    private val decoderCallback = object : MediaCodec.Callback() {
-//        override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
-//            try {
-//                val packet = packets.take()
-//                codec.getInputBuffer(index)?.apply {
-//                    put(packet.nalData)
-//                    decoder?.queueInputBuffer(index, 0, packet.nalData.size, packet.pts, 0)
-//                }
-//            } catch (e: InterruptedException) {
-//                Log.e(TAG, "Interrupted when waiting for packet", e)
-//                Thread.currentThread().interrupt()
-//            } catch (e: IllegalStateException) {
-//                Log.e(TAG, "Error queueing input buffer", e)
-//            }
-//        }
-//
-//        override fun onOutputBufferAvailable(codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo) {
-//            try {
-//                codec.releaseOutputBuffer(index, true)
-//            } catch (e: IllegalStateException) {
-//                Log.e(TAG, "Error releasing output buffer", e)
-//            }
-//        }
-//
-//        override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
-//            Log.e(TAG, "Decode error", e)
-//        }
-//
-//        override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
-//            Log.i(TAG, "Output format changed: $format")
-//        }
-//    }
-//
-//    fun initDecoder() {
-//        try {
-//            Log.i(TAG, "Initializing decoder: width=$width, height=$height")
-//            decoder = MediaCodec.createDecoderByType(MIME_TYPE).apply {
-//                val format = MediaFormat.createVideoFormat(MIME_TYPE, width, height)
-//                configure(format, surface, null, 0)
-//                setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT)
-//                setCallback(decoderCallback, Handler(decodeThread.looper))
-//                start()
-//            }
-//        } catch (e: Exception) {
-//            Log.e(TAG, "Error initializing decoder", e)
-//        }
-//    }
-//
-//    fun addPacket(packet: NALPacket) {
-//        try {
-//            packets.put(packet)
-//        } catch (e: InterruptedException) {
-//            Log.e(TAG, "Error adding packet to queue", e)
-//            Thread.currentThread().interrupt()
-//        }
-//    }
-//
-//    fun start() {
-//        initDecoder()
-//    }
-//
-//    fun release() {
-//        try {
-//            decoder?.stop()
-//            decoder?.release()
-//            Log.d(TAG, "Decoder stopped and released.")
-//        } catch (e: Exception) {
-//            Log.e(TAG, "Error releasing MediaCodec", e)
-//        } finally {
-//            decodeThread.quitSafely()
-//            packets.clear()
-//            Log.d(TAG, "VideoPlayer resources released.")
-//        }
-//    }
-//
-//    fun stopPlayer() {
-//        release()
-//        try {
-//            decodeThread.join()
-//            Log.d(TAG, "VideoPlayer thread terminated.")
-//        } catch (e: InterruptedException) {
-//            Log.e(TAG, "Error stopping decode thread", e)
-//            Thread.currentThread().interrupt()
-//        }
-//    }
-//
-//    private fun doDecode(packet: NALPacket) {
-//        val timeoutUsec = 10000L
-//        if (packet.nalData == null) {
-//            Log.w(TAG, "NAL data is null, skipping packet")
-//            return
-//        }
-//
-//        try {
-//            val inputBufferIndex = decoder?.dequeueInputBuffer(timeoutUsec) ?: -1
-//            if (inputBufferIndex >= 0) {
-//                decoder?.getInputBuffer(inputBufferIndex)?.apply {
-//                    put(packet.nalData)
-//                    decoder?.queueInputBuffer(inputBufferIndex, 0, packet.nalData.size, packet.pts, 0)
-//                }
-//            } else {
-//                Log.d(TAG, "Failed to dequeue input buffer")
-//            }
-//        } catch (e: Exception) {
-//            Log.e(TAG, "Error during decoding process", e)
-//        }
-//
-//        decode(timeoutUsec)
-//    }
-//
-//    @SuppressLint("WrongConstant")
-//    private fun decode(timeoutUsec: Long) {
-//        try {
-//            val outputBufferIndex = decoder?.dequeueOutputBuffer(bufferInfo, timeoutUsec) ?: -1
-//            if (outputBufferIndex >= 0) {
-//                decoder?.releaseOutputBuffer(outputBufferIndex, true)
-//            } else if (outputBufferIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
-//                Log.d(TAG, "No output buffer available, trying again later")
-//            }
-//        } catch (e: Exception) {
-//            Log.e(TAG, "Error dequeuing output buffer", e)
-//        }
-//    }
-//}
+package com.cjx.airplayjavademo.player
+
+import android.media.MediaCodec
+import android.media.MediaFormat
+import android.os.Handler
+import android.os.HandlerThread
+import android.util.Log
+import android.view.Surface
+import com.cjx.airplayjavademo.model.NALPacket
+import com.cjx.airplayjavademo.tools.LogRepository
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
+
+class VideoPlayer(private val mSurface: Surface) {
+    companion object {
+        private const val TAG = "VideoPlayer.kt"
+        private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
+        private const val VIDEO_WIDTH = 540
+        private const val VIDEO_HEIGHT = 960
+    }
+
+    private var mDecoder: MediaCodec? = null
+    private val packets: BlockingQueue<NALPacket> = LinkedBlockingQueue(500)
+    private val mDecodeThread = HandlerThread("VideoDecoder")
+
+    private val mDecoderCallback = object : MediaCodec.Callback() {
+        override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
+            try {
+                val packet = packets.take()
+                val inputBuffer = codec.getInputBuffer(index)
+                inputBuffer?.put(packet.nalData)
+                codec.queueInputBuffer(index, 0, packet.nalData.size, packet.pts, 0)
+            } catch (e: InterruptedException) {
+                LogRepository.addLog(TAG, "Error while waiting for NALPacket", 'E')
+            } catch (e: IllegalStateException) {
+                LogRepository.addLog(TAG, "Error while queuing input buffer", 'E')
+            }
+        }
+
+        override fun onOutputBufferAvailable(codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo) {
+            try {
+                codec.releaseOutputBuffer(index, true)
+            } catch (e: IllegalStateException) {
+                LogRepository.addLog(TAG, "Error releasing output buffer", 'E')
+            }
+        }
+
+        override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
+            LogRepository.addLog(TAG, "Decoder error", 'E')
+        }
+
+        override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
+            LogRepository.addLog(TAG, "Output format changed to $format", 'I')
+        }
+    }
+
+    fun initDecoder() {
+        mDecodeThread.start()
+        try {
+            LogRepository.addLog(TAG, "initDecoder: VIDEO_WIDTH=$VIDEO_WIDTH---VIDEO_HEIGHT=$VIDEO_HEIGHT", 'I')
+            mDecoder = MediaCodec.createDecoderByType(MIME_TYPE)
+            val format = MediaFormat.createVideoFormat(MIME_TYPE, VIDEO_WIDTH, VIDEO_HEIGHT)
+            mDecoder?.apply {
+                configure(format, mSurface, null, 0)
+                setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT)
+                setCallback(mDecoderCallback, Handler(mDecodeThread.looper))
+                start()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            LogRepository.addLog(TAG, "Error while initializing MediaCodec", 'E')
+        }
+    }
+
+    fun addPacket(nalPacket: NALPacket) {
+        try {
+            packets.put(nalPacket)
+        } catch (e: InterruptedException) {
+            LogRepository.addLog(TAG, "Error while adding NALPacket to queue", 'E')
+        }
+    }
+
+    fun start() {
+        initDecoder()
+    }
+
+    fun release() {
+        mDecoder?.apply {
+            try {
+                stop()
+                release()
+            } catch (e: Exception) {
+                LogRepository.addLog(TAG, "Error while releasing MediaCodec", 'E')
+            }
+        }
+
+        if (mDecodeThread.isAlive) {
+            mDecodeThread.quitSafely()
+        }
+
+        packets.clear()
+        LogRepository.addLog(TAG, "VideoPlayer resources released.", 'I')
+    }
+
+    fun stopPlayer() {
+        mDecoder?.apply {
+            try {
+                stop()
+                release()
+            } catch (e: Exception) {
+                LogRepository.addLog(TAG, "Errore durante il rilascio del MediaCodec", 'E')
+            }
+        }
+
+        if (mDecodeThread.isAlive) {
+            mDecodeThread.quitSafely()
+            try {
+                mDecodeThread.join()
+                LogRepository.addLog(TAG, "VideoPlayer thread stopped.", 'W')
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                LogRepository.addLog(TAG, "Errore durante l'interruzione di mDecodeThread", 'E')
+            }
+        }
+
+        packets.clear()
+        Log.d(TAG, "Risorse VideoPlayer rilasciate.")
+        LogRepository.addLog(TAG, "Risorse VideoPlayer rilasciate.", 'I')
+    }
+}

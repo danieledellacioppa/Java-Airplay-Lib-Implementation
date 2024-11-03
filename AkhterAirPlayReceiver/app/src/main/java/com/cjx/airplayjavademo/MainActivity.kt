@@ -207,14 +207,12 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         if (mVideoPlayer == null) {
-            Log.i(TAG, "surfaceChanged: width:$width --- height:$height")
-            mVideoPlayer = VideoPlayer(holder.surface, width, height).apply {
+            LogRepository.addLog(TAG, "surfaceChanged: width:$width --- height:$height")
+            mVideoPlayer = VideoPlayer(holder.surface).apply {
                 start()
             }
         }
     }
-
-
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         Log.d(TAG, "surfaceDestroyed: Surface destroyed.")
