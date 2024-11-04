@@ -1,5 +1,6 @@
 package com.github.serezhka.jap2server.internal.handler.control;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2server.internal.handler.session.Session;
 import com.github.serezhka.jap2server.internal.handler.session.SessionManager;
 
@@ -30,6 +31,7 @@ public class PairingHandler extends ControlHandler {
             case "/pair-setup": {
                 DefaultFullHttpResponse response = createResponseForRequest(request);
                 session.getAirPlay().pairSetup(new ByteBufOutputStream(response.content()));
+                LogRepository.INSTANCE.addLog("PairingHandler", "pair-setup", 'I');
                 return sendResponse(ctx, request, response);
             }
             case "/pair-verify": {

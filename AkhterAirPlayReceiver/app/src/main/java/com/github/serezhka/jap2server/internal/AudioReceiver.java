@@ -1,5 +1,6 @@
 package com.github.serezhka.jap2server.internal;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2server.internal.handler.audio.AudioHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -48,8 +49,10 @@ public class AudioReceiver implements Runnable {
                     });
             ChannelFuture channelFuture = bootstrap.bind().sync();
 
-            log.info("Audio receiver listening on port: {}",
-                    port = ((InetSocketAddress) channelFuture.channel().localAddress()).getPort());
+            port = ((InetSocketAddress) channelFuture.channel().localAddress()).getPort();
+
+            log.info("Audio receiver listening on port: {}", port);
+            LogRepository.INSTANCE.addLog("AudioReceiver", "Audio receiver listening on port: " + port, 'I');
 
             synchronized (monitor) {
                 monitor.notify();
@@ -57,8 +60,10 @@ public class AudioReceiver implements Runnable {
 
             channelFuture.channel().closeFuture().sync();
         } catch (InterruptedException e) {
+            LogRepository.INSTANCE.addLog("AudioReceiver", "Audio receiver interrupted.", 'I');
             log.info("Audio receiver interrupted");
         } finally {
+            LogRepository.INSTANCE.addLog("AudioReceiver", "Audio receiver stopped.", 'I');
             log.info("Audio receiver stopped");
             workerGroup.shutdownGracefully();
         }
