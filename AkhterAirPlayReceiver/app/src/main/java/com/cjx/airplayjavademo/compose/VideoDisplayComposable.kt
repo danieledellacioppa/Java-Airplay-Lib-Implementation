@@ -3,6 +3,7 @@ package com.cjx.airplayjavademo.compose
 import airplayjavademo.R
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,12 +18,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.cjx.airplayjavademo.ui.theme.Gray40
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -37,7 +40,10 @@ fun VideoDisplayComposable(
     onStopAudioPlayer: () -> Unit, // Funzione per fermare l'audio player
     onStopVideoPlayer: () -> Unit // Funzione per fermare il video player
 )  {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(Color(Gray40.toArgb())) // Sfondo grigio
+    ) {
         if (isConnectionActive) {
             // Controlliamo se il SurfaceView è già attivo prima di inizializzarlo nuovamente
             AndroidView(
