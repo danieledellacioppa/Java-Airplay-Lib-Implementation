@@ -138,9 +138,9 @@ public class MirroringReceiver implements Runnable {
             Log.e(TAG, "Mirroring receiver" + threadID + " interrupted during setup", e);
             Thread.currentThread().interrupt();
             System.gc();
-            } catch (Exception e) {
+        } catch (Exception e) {
                 LogRepository.INSTANCE.addLog(TAG, "Error starting mirroring receiver" + threadID, 'E');
-            } finally {
+        } finally {
             LogRepository.INSTANCE.setConnection(false);
             Log.w(TAG, "Mirroring receiver" + threadID + " shutting down...");
             closeChannel();

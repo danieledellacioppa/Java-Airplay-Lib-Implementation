@@ -174,6 +174,8 @@ public class RTSPHandler extends ControlHandler {
                 ctx.flush();
                 LogRepository.INSTANCE.addLog(TAG, "Audio and mirroring sessions stopped.", 'I');
                 Log.d("RTSPHandler", "Audio and mirroring sessions stopped.");
+                LogRepository.INSTANCE.setConnection(false);
+                LogRepository.INSTANCE.addLog(TAG, "setConnection(false)", 'I');
             }
             return sendResponse(ctx, request, response);
         } else if ("POST".equals(request.method().toString()) && request.uri().equals("/audioMode")) {
