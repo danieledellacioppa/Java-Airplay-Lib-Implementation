@@ -1,5 +1,8 @@
 package com.github.serezhka.jap2server.internal.handler.control;
 
+import android.util.Log;
+
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo;
 import com.github.serezhka.jap2lib.rtsp.MediaStreamInfo;
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo;
@@ -33,6 +36,7 @@ public class RTSPHandler extends ControlHandler {
     private final AirplayDataConsumer airplayDataConsumer;
     private final int airPlayPort;
     private final int airTunesPort;
+    private static final String TAG = "RTSPHandler";
 
     public RTSPHandler(int airPlayPort, int airTunesPort, SessionManager sessionManager,
                        AirplayDataConsumer airplayDataConsumer) {
@@ -46,6 +50,26 @@ public class RTSPHandler extends ControlHandler {
     protected boolean handleRequest(ChannelHandlerContext ctx, Session session, FullHttpRequest request) throws Exception {
         DefaultFullHttpResponse response = createResponseForRequest(request);
         if (RtspMethods.SETUP.equals(request.method())) {
+
+            // Controllo se una sessione di mirroring è già attiva
+            if (session.isMirroringActive()) {
+                Log.d(TAG, "Session already active. Terminating previous session...");
+                session.stopMirroring();  // Chiude eventuali sessioni aperte
+
+                // Attendi che il thread precedente termini
+                Thread previousThread = session.getAirPlayReceiverThread();
+                if (previousThread != null && previousThread.isAlive()) {
+                    try {
+                        Log.d(TAG, "Waiting for previous MirroringReceiver thread to terminate...");
+                        LogRepository.INSTANCE.addLog(TAG, "Waiting for previous MirroringReceiver thread to terminate...", 'W');
+                        previousThread.join();
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "Interrupted while waiting for previous MirroringReceiver thread to terminate", e);
+                        LogRepository.INSTANCE.addLog(TAG, "Interrupted while waiting for previous MirroringReceiver thread to terminate", 'E');
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
 
             MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
             if (mediaStreamInfo == null) {
@@ -92,8 +116,11 @@ public class RTSPHandler extends ControlHandler {
                         MirroringHandler mirroringHandler = new MirroringHandler(session.getAirPlay(), airplayDataConsumer);
                         MirroringReceiver airPlayReceiver = new MirroringReceiver(airPlayPort, mirroringHandler);
                         Thread airPlayReceiverThread = new Thread(airPlayReceiver);
-                        session.setAirPlayReceiverThread(airPlayReceiverThread);
+                        session.setAirPlayReceiverThread(airPlayReceiverThread, airPlayReceiver);
                         airPlayReceiverThread.start();
+
+                        Log.d("RTSPHandler", "New MirroringReceiver thread started with ID: " + airPlayReceiverThread.getId());
+                        LogRepository.INSTANCE.addLog("RTSPHandler", "New MirroringReceiver thread started with ID: " + airPlayReceiverThread.getId(), 'I');
 
                         session.getAirPlay().rtspSetupVideo(new ByteBufOutputStream(response.content()), airPlayPort, airTunesPort, 7011);
                         break;
@@ -105,10 +132,10 @@ public class RTSPHandler extends ControlHandler {
             response.content().writeBytes(content);
             return sendResponse(ctx, request, response);
         } else if (RtspMethods.RECORD.equals(request.method())) {
-
-            session.getAirPlay().printPlist("RECORD ",new ByteBufInputStream(request.content()));
-            response.headers().add("Audio-Latency", "11025");
-            response.headers().add("Audio-Jack-Status", "connected; type=analog");
+//
+//            session.getAirPlay().printPlist("RECORD ",new ByteBufInputStream(request.content()));
+//            response.headers().add("Audio-Latency", "11025");
+//            response.headers().add("Audio-Jack-Status", "connected; type=analog");
             return sendResponse(ctx, request, response);
         } else if (RtspMethods.SET_PARAMETER.equals(request.method())) {
             session.getAirPlay().printPlist("SET_PARAMETER ",new ByteBufInputStream(request.content()));
@@ -121,19 +148,34 @@ public class RTSPHandler extends ControlHandler {
         } else if (RtspMethods.TEARDOWN.equals(request.method())) {
             session.getAirPlay().printPlist("TEARDOWN ",new ByteBufInputStream(request.content()));
 
+            Log.d("RTSPHandler", "TEARDOWN: session.getAirPlay().isPairVerified() = " + session.getAirPlay().isPairVerified());
+            Log.d("RTSPHandler", "TEARDOWN: request was " + request.content());
+            LogRepository.INSTANCE.addLog(TAG, "TEARDOWN: request was " + request.content(), 'I');
+
             MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
             if (mediaStreamInfo != null) {
                 switch (mediaStreamInfo.getStreamType()) {
                     case AUDIO:
                         session.stopAudio();
+                        ctx.flush();
+                        LogRepository.INSTANCE.addLog(TAG, "Audio session stopped.", 'I');
+                        Log.d("RTSPHandler", "Audio session stopped.");
                         break;
                     case VIDEO:
                         session.stopMirroring();
+                        ctx.flush();
+                        LogRepository.INSTANCE.addLog(TAG, "Mirroring session stopped.", 'I');
+                        Log.d("RTSPHandler", "Mirroring session stopped.");
                         break;
                 }
             } else {
                 session.stopAudio();
                 session.stopMirroring();
+                ctx.flush();
+                LogRepository.INSTANCE.addLog(TAG, "Audio and mirroring sessions stopped.", 'I');
+                Log.d("RTSPHandler", "Audio and mirroring sessions stopped.");
+                LogRepository.INSTANCE.setConnection(false);
+                LogRepository.INSTANCE.addLog(TAG, "setConnection(false)", 'I');
             }
             return sendResponse(ctx, request, response);
         } else if ("POST".equals(request.method().toString()) && request.uri().equals("/audioMode")) {
