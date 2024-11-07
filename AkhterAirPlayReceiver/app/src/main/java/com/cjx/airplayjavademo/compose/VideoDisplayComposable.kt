@@ -38,7 +38,9 @@ fun VideoDisplayComposable(
     onStartServer: () -> Unit, // Funzione per avviare il server
     onStopServer: () -> Unit, // Funzione per fermare il server
     onStopAudioPlayer: () -> Unit, // Funzione per fermare l'audio player
-    onStopVideoPlayer: () -> Unit // Funzione per fermare il video player
+    onStopVideoPlayer: () -> Unit, // Funzione per fermare il video player
+    showLog: Boolean, // Nuovo parametro per la visibilità del log
+    toggleLogVisibility: () -> Unit // Funzione per alternare la visibilità
 )  {
     Box(modifier = Modifier
         .fillMaxSize()
@@ -85,7 +87,7 @@ fun VideoDisplayComposable(
                 )
             )
         } else {
-            LogDisplayComposable(versionName, onStartServer, onStopServer, onStopAudioPlayer, onStopVideoPlayer)
+            LogDisplayComposable(versionName, onStartServer, onStopServer, onStopAudioPlayer, onStopVideoPlayer, showLog, toggleLogVisibility)
         }
     }
 }

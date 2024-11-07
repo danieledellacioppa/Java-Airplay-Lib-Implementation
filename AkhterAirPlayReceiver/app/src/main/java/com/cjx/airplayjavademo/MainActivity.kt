@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.toArgb
 import com.cjx.airplayjavademo.compose.VideoDisplayComposable
 import com.cjx.airplayjavademo.model.NALPacket
@@ -69,6 +70,8 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
 //    private var isConnectionActive by mutableStateOf(false)
+    private var showLog = mutableStateOf(false)
+
 
     companion object {
         private const val TAG = "MainActivity"
@@ -87,7 +90,17 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         window.navigationBarColor = Gray40.toArgb()
         setContent {
             BioAuthenticatorTheme {
-                VideoDisplayComposable(this@MainActivity, isConnectionActive, versionName, ::startServer, ::stopServer, ::stopAudioPlayer, ::stopVideoPlayer)
+                VideoDisplayComposable(
+                    this@MainActivity,
+                    isConnectionActive,
+                    versionName,
+                    ::startServer,
+                    ::stopServer,
+                    ::stopAudioPlayer,
+                    ::stopVideoPlayer,
+                    showLog.value,
+                    ::toggleLogVisibility
+                )
             }
         }
         LogRepository.addLog(TAG, "onCreate: AirPlay server initialized. Version: $versionName")
@@ -143,6 +156,11 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         mVideoPlayer?.stopPlayer()
         mVideoPlayer = null
         LogRepository.addLog(TAG, "VideoPlayer stopped.")
+    }
+
+    // Funzione per alternare la visibilità del log
+    fun toggleLogVisibility() {
+        showLog.value = !showLog.value
     }
 
 
