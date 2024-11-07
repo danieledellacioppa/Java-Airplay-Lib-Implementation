@@ -4,6 +4,7 @@ import airplayjavademo.R
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
@@ -45,7 +46,11 @@ fun VideoDisplayComposable(
                         holder.addCallback(callback)
                     }
                 },
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .aspectRatio(2f / 3f, true)
+                    .align(Alignment.Center)
+                ,
                 update = { view ->
                     // Logica di aggiornamento del SurfaceView, se necessario
                 }
