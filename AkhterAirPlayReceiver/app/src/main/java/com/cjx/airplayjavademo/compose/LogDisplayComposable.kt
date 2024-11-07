@@ -46,6 +46,9 @@ fun LogDisplayComposable(
     // Crea un LazyListState per monitorare e controllare lo scroll della LazyColumn
     val listState = rememberLazyListState()
 
+    // Applica la trasformazione per espandere gli spazi nel logo ASCII
+    val expandedLogoAscii = remember { expandSpaces(logoAscii) }
+
     val buttons = listOf(
         "Start Server" to onStartServer,
         "Stop Server" to onStopServer,
@@ -77,9 +80,9 @@ fun LogDisplayComposable(
                 )
                 {
                     Text(
-                        text = logoAscii,
+                        text = expandedLogoAscii,
                         style = TextStyle(
-                            fontSize = 4.sp,
+                            fontSize = 2.sp,
                             color = Color.Yellow
                         ) // Font molto piccolo, testo giallo
                     )
@@ -247,3 +250,8 @@ fun LogDisplayComposable(
         listState.animateScrollToItem(logMessages.size - 1)
     }
 }
+
+fun expandSpaces(original: String): String {
+    return original.replace(" ", "    ")
+}
+
