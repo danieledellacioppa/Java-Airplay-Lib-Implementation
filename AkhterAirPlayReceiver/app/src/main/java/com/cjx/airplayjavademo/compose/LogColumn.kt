@@ -41,8 +41,8 @@ fun LogColumn(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0x55AAEA00),
-                        Color(0xFF464545)
+                        Color(0x11DADADA),
+                        Color.Transparent
                     )
                 )
             ),
@@ -59,15 +59,16 @@ fun LogColumn(
                 // Imposta larghezza fissa per il punto
                 Box(
                     modifier = Modifier
-                        .width(50.dp) // Fissare la larghezza per la pallina
-                        .height(25.dp) // Fissare l'altezza per la pallina
+//                        .width(50.dp) // Fissare la larghezza per la pallina
+//                        .height(25.dp) // Fissare l'altezza per la pallina
                         .align(Alignment.CenterVertically)
+                        .padding(start = 10.dp)
                 ) {
                     Text(
                         text = logMessages[index].time, // Ora del log
                         style = TextStyle(
                             color = Color(0xFFFF6600), // Testo arancione
-                            fontSize = 12.sp,
+                            fontSize = 4.sp,
                             fontFamily = alata,
                             shadow = Shadow(
                                 color = Color.Black,
@@ -87,7 +88,7 @@ fun LogColumn(
                         .align(Alignment.CenterVertically),
                     style = TextStyle(
                         color = Color.Cyan,
-                        fontSize = 10.sp,
+                        fontSize = 4.sp,
                         fontFamily = FontFamily.Monospace, // Imposta font monospace
                         shadow = Shadow(
                             color = Color.Black,
@@ -116,7 +117,7 @@ fun LogColumn(
                         ),
                     style = TextStyle(
                         color = logMessages[index].type.color, // Colore del testo
-                        fontSize = 13.sp,
+                        fontSize = 4.sp,
                         fontFamily = FontFamily.Monospace, // Imposta font monospace
 //                            lineHeight = 4.sp,
                         shadow = Shadow(
