@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,8 +47,12 @@ fun LogDisplayComposable(
     // Crea un LazyListState per monitorare e controllare lo scroll della LazyColumn
     val listState = rememberLazyListState()
 
+    val expandedLogoSP = 2
+    val expandedAppleSP = 1
+
     // Applica la trasformazione per espandere gli spazi nel logo ASCII
-    val expandedLogoAscii = remember { expandSpaces(logoAscii) }
+    val expandedLogoAscii = remember { expandSpaces(logoAscii, expandedLogoSP) }
+    val expandedAppleAscii = remember { expandSpaces(appleAscii, expandedAppleSP) }
 
     val buttons = listOf(
         "Start Server" to onStartServer,
@@ -79,46 +84,62 @@ fun LogDisplayComposable(
                     verticalAlignment = Alignment.CenterVertically,
                 )
                 {
+                    Box(
+                        modifier = Modifier
+//                            .width(100.dp) // Imposta la larghezza della sovrapposizione
+//                            .height(50.dp) // Imposta l'altezza della sovrapposizione
+                    ) {
+                        Text(
+                            text = expandedLogoAscii,
+                            style = TextStyle(
+                                fontSize = expandedLogoSP.sp,
+                                color = Color.Gray
+                            ),
+                            modifier = Modifier.align(Alignment.Center) // Centra il logo grigio
+                        )
+                        Text(
+                            text = expandedAppleAscii,
+                            style = TextStyle(
+                                fontSize = expandedAppleSP.sp,
+                                color = Color.White
+                            ),
+                            modifier = Modifier.align(Alignment.BottomCenter) // Sovrappone il logo bianco
+                        )
+                    }
+
+                }
+                Spacer(modifier = Modifier.height(3.dp))
+                Column()
+                {
                     Text(
-                        text = expandedLogoAscii,
+                        text = "AirPlay Receiver",
                         style = TextStyle(
-                            fontSize = 2.sp,
-                            color = Color.Yellow
+                            fontSize = 10.sp,
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontFamily = minecraftFont
                         ) // Font molto piccolo, testo giallo
                     )
-                    Column()
+                    Row(
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically,
+                    )
                     {
                         Text(
-                            text = "AirPlay Receiver",
+                            text = "Beta Test v",
                             style = TextStyle(
-                                fontSize = 16.sp,
-                                color = Color.Yellow,
+                                fontSize = 10.sp,
+                                color = Color.Gray,
                                 fontFamily = minecraftFont
                             ) // Font molto piccolo, testo giallo
                         )
-                        Row(
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically,
+                        Text(
+                            text = versionName,
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                color = Color.Black.copy(alpha = 0.4f),
+                                fontFamily = minecraftFont
+                            ) // Font molto piccolo, testo giallo
                         )
-                        {
-                            Text(
-                                text = "Beta Test v",
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    color = Color.Red,
-                                    fontFamily = minecraftFont
-                                ) // Font molto piccolo, testo giallo
-                            )
-                            Text(
-                                text = versionName,
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    color = Color(0xFFFF9800),
-                                    fontFamily = minecraftFont
-                                ) // Font molto piccolo, testo giallo
-                            )
-                        }
-
                     }
 
                 }
@@ -251,7 +272,14 @@ fun LogDisplayComposable(
     }
 }
 
-fun expandSpaces(original: String): String {
-    return original.replace(" ", "    ")
+fun expandSpaces(original: String, sp: Int = 4): String {
+
+    if (sp == 2) {
+        return original.replace(" ", "    ")
+    }
+    else if (sp == 1) {
+        return original.replace(" ", "  ")
+    }
+    return original.replace(" ", "        ")
 }
 
