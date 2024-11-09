@@ -157,13 +157,13 @@ public class RTSPHandler extends ControlHandler {
                 switch (mediaStreamInfo.getStreamType()) {
                     case AUDIO:
                         session.stopAudio();
-                        ctx.flush();
+                        ctx.close();
                         LogRepository.INSTANCE.addLog(TAG, "Audio session stopped.", 'I');
                         Log.d("RTSPHandler", "Audio session stopped.");
                         break;
                     case VIDEO:
                         session.stopMirroring();
-                        ctx.flush();
+                        ctx.close();
                         LogRepository.INSTANCE.addLog(TAG, "Mirroring session stopped.", 'I');
                         Log.d("RTSPHandler", "Mirroring session stopped.");
                         break;
@@ -171,7 +171,7 @@ public class RTSPHandler extends ControlHandler {
             } else {
                 session.stopAudio();
                 session.stopMirroring();
-                ctx.flush();
+                ctx.close();
                 LogRepository.INSTANCE.addLog(TAG, "Audio and mirroring sessions stopped.", 'I');
                 Log.d("RTSPHandler", "Audio and mirroring sessions stopped.");
                 LogRepository.INSTANCE.setConnection(false);
