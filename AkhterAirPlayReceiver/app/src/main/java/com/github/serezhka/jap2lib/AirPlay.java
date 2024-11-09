@@ -5,6 +5,7 @@ import android.util.Log;
 import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2lib.rtsp.MediaStreamInfo;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -19,6 +20,10 @@ public class AirPlay {
 
     private FairPlayVideoDecryptor fairPlayVideoDecryptor;
     private FairPlayAudioDecryptor fairPlayAudioDecryptor;
+
+    // Aggiungiamo airPlayPort e airTunesPort come attributi della classe
+    private Integer airPlayPort;
+    private Integer airTunesPort;
 
     public AirPlay() {
         pairing = new Pairing();
@@ -102,6 +107,16 @@ public class AirPlay {
      */
     public void rtspSetupVideo(OutputStream out, int videoDataPort, int videoEventPort, int videoTimingPort) throws Exception {
         rtsp.setupVideo(out, videoDataPort, videoEventPort, videoTimingPort);
+        if (this.airPlayPort == null) {
+            this.airPlayPort = videoDataPort; // Salva airPlayPort
+            Log.d("AirPlay", "AirPlay port saved: " + airPlayPort);
+            LogRepository.INSTANCE.addLog("AirPlay", "AirPlay port saved: " + airPlayPort, 'I');
+        }
+        if (this.airTunesPort == null) {
+            this.airTunesPort = videoEventPort; // Salva airTunesPort
+            Log.d("AirPlay", "AirTunes port saved: " + airTunesPort);
+            LogRepository.INSTANCE.addLog("AirPlay", "AirTunes port saved: " + airTunesPort, 'I');
+        }
     }
 
     /**
@@ -168,4 +183,33 @@ public class AirPlay {
             LogRepository.INSTANCE.addLog("AirPlay", "FairPlay audio decryptor released.", 'I');
         }
     }
+
+    // Implementazione del metodo sendReconnectRequest
+    public void sendReconnectRequest() {
+        if (airPlayPort == null || airTunesPort == null) {
+            Log.e("AirPlay", "Ports not set. Cannot send reconnect request.");
+            LogRepository.INSTANCE.addLog("AirPlay", "Ports not set. Cannot send reconnect request.", 'E');
+            return;
+        }
+
+        try {
+            Log.d("AirPlay", "Attempting to reinitialize pairing setup for reconnection.");
+            LogRepository.INSTANCE.addLog("AirPlay", "Attempting to reinitialize pairing setup for reconnection.", 'I');
+
+            ByteArrayOutputStream tempOutput = new ByteArrayOutputStream();
+            pairSetup(tempOutput);
+            Log.d("AirPlay", "Pairing setup response generated for reconnection attempt.");
+            LogRepository.INSTANCE.addLog("AirPlay", "Pairing setup response generated for reconnection attempt.", 'I');
+
+            // Usa i valori salvati di airPlayPort e airTunesPort
+            rtspSetupVideo(tempOutput, airPlayPort, airTunesPort, 7011);
+            Log.d("AirPlay", "Video setup response generated for reconnection attempt.");
+            LogRepository.INSTANCE.addLog("AirPlay", "Video setup response generated for reconnection attempt.", 'I');
+
+        } catch (Exception e) {
+            Log.e("AirPlay", "Failed to send reconnect request: " + e.getMessage(), e);
+            LogRepository.INSTANCE.addLog("AirPlay", "Failed to send reconnect request: " + e.getMessage(), 'E');
+        }
+    }
+
 }

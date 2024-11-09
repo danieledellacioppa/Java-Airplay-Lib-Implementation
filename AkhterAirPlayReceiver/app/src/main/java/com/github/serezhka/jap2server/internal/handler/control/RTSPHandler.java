@@ -27,11 +27,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicLong;
 
 @ChannelHandler.Sharable
 public class RTSPHandler extends ControlHandler {
 
     private static final Logger log = LoggerFactory.getLogger(RTSPHandler.class);
+
+    private final AtomicLong lastPostTimestamp = new AtomicLong(System.currentTimeMillis());
+    private static final long POST_TIMEOUT_MS = 30000; // Timeout di 30 secondi
+
 
     private final AirplayDataConsumer airplayDataConsumer;
     private final int airPlayPort;
@@ -180,6 +185,22 @@ public class RTSPHandler extends ControlHandler {
             return sendResponse(ctx, request, response);
         } else if ("POST".equals(request.method().toString()) && request.uri().equals("/audioMode")) {
             session.getAirPlay().printPlist("audioMode ",new ByteBufInputStream(request.content()));
+            LogRepository.INSTANCE.addLog(TAG, "audioMode request was " + request.content(), 'I');
+
+            return sendResponse(ctx, request, response);
+        } else if ("POST".equals(request.method().toString()) && request.uri().equals("/feedback")) {
+            // Aggiorna il timestamp dell'ultimo POST ricevuto
+            lastPostTimestamp.set(System.currentTimeMillis());
+
+            log.info("Received POST /feedback, keeping connection alive");
+            LogRepository.INSTANCE.addLog(TAG, "Received POST /feedback, keeping connection alive", 'I');
+
+            // Rispondi alla richiesta POST per confermare che la connessione è attiva
+            response = createResponseForRequest(request);
+            response.content().writeBytes("OK".getBytes(StandardCharsets.UTF_8));
+
+            session.getAirPlay().sendReconnectRequest();
+            LogRepository.INSTANCE.addLog(TAG, "Reconnect request sent", 'I');
 
             return sendResponse(ctx, request, response);
         }
