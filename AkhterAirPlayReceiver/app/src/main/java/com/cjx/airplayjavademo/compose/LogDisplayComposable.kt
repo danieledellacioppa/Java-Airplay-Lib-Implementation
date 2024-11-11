@@ -23,14 +23,16 @@ import kotlinx.coroutines.launch
 @Composable
 fun LogDisplayComposable(
     versionName: String,
-    onToggleServer: () -> Unit,
+    onToggleServer: () -> Boolean,  // Cambiato il tipo di ritorno per riflettere lo stato attuale
     onStopAudioPlayer: () -> Unit,
     onStopVideoPlayer: () -> Unit,
     showLog: Boolean,
-    toggleLogVisibility: () -> Unit
+    toggleLogVisibility: () -> Unit,
+    isServerRunning: State<Boolean> // Usa State invece di MutableState
 ) {
     val scaffoldState = rememberScaffoldState()
     var showButtons by remember { mutableStateOf(true) }
+    var internalServerRunning by remember { mutableStateOf(isServerRunning) }
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
@@ -152,7 +154,9 @@ fun LogDisplayComposable(
             // Mostra la lista dei pulsanti solo se showButtons è true
             if (showButtons) {
                 val buttons = listOf(
-                    "Toggle Server" to onToggleServer,
+                    "Toggle Server" to {
+                        onToggleServer() // Chiama la funzione per cambiare stato
+                    },
                     "Stop Audio" to onStopAudioPlayer,
                     "Stop Video" to onStopVideoPlayer,
                     "Toggle Log" to toggleLogVisibility
@@ -171,12 +175,26 @@ fun LogDisplayComposable(
                     ) {
                         items(buttons.size) { index ->
                             val (label, action) = buttons[index]
+
+                            // Cambia i colori del pulsante Toggle Server in base allo stato del server
+
+                            val backgroundColor = if (label == "Toggle Server" && isServerRunning.value) {
+                                Color(0xFF4CAF50)
+                            } else {
+                                Color(0xFF464545)
+                            }
+                            val textColor = if (label == "Toggle Server" && isServerRunning.value) {
+                                Color.White
+                            } else {
+                                Color.Gray
+                            }
+
                             Button(
-                                onClick = action,
+                                onClick = { action.invoke() },  // Ignores the return type of action
                                 modifier = Modifier.size(60.dp, 25.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    backgroundColor = Color(0xFF464545),
-                                    contentColor = Color.Gray
+                                    backgroundColor = backgroundColor,
+                                    contentColor = textColor
                                 ),
                                 contentPadding = PaddingValues(1.dp)
                             ) {

@@ -6,7 +6,10 @@ import android.util.Log
 import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import com.cjx.airplayjavademo.compose.VideoDisplayComposable
 import com.cjx.airplayjavademo.model.NALPacket
@@ -21,6 +24,8 @@ import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo
 import com.github.serezhka.jap2server.AirPlayServer
 import com.github.serezhka.jap2server.AirplayDataConsumer
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.LinkedList
 
 /**
@@ -69,7 +74,10 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var mVideoPlayer: VideoPlayer? = null
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
-    private val isServerRunning = mutableStateOf(false) // Variabile osservabile per lo stato del server
+    // Usare StateFlow per tenere traccia dello stato del server
+    private val _isServerRunning = MutableStateFlow(false)
+    val isServerRunning: StateFlow<Boolean> get() = _isServerRunning
+
 
     private var showLog = mutableStateOf(false)
 
@@ -91,6 +99,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         window.navigationBarColor = Gray40.toArgb()
         setContent {
             BioAuthenticatorTheme {
+                val isServerRunningState = isServerRunning.collectAsState()
                 VideoDisplayComposable(
                     this@MainActivity,
                     isConnectionActive,
@@ -99,7 +108,8 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                     ::stopAudioPlayer,
                     ::stopVideoPlayer,
                     showLog.value,
-                    ::toggleLogVisibility
+                    ::toggleLogVisibility,
+                    isServerRunningState
                 )
             }
         }
@@ -125,7 +135,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
             serverThread = Thread({
                 try {
                     airPlayServer.start()
-                    isServerRunning.value = true
+                    _isServerRunning.value = true
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -142,7 +152,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                 airPlayServer.stop()
                 serverThread?.join()
                 serverThread = null
-                isServerRunning.value = false
+                _isServerRunning.value = false
                 LogRepository.addLog(TAG, "AirPlay server stopped and thread terminated.")
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -150,12 +160,13 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
-    fun toggleServer() {
+    fun toggleServer(): Boolean {
         if (isServerRunning.value) {
             stopServer()
         } else {
             startServer()
         }
+        return isServerRunning.value
     }
 
 

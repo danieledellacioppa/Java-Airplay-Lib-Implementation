@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,11 +37,12 @@ fun VideoDisplayComposable(
     callback: SurfaceHolder.Callback,
     isConnectionActive: Boolean,
     versionName: String,
-    onToggleServer: () -> Unit,
+    onToggleServer: () -> Boolean, // Funzione per attivare/disattivare il server
     onStopAudioPlayer: () -> Unit, // Funzione per fermare l'audio player
     onStopVideoPlayer: () -> Unit, // Funzione per fermare il video player
     showLog: Boolean, // Nuovo parametro per la visibilità del log
-    toggleLogVisibility: () -> Unit // Funzione per alternare la visibilità
+    toggleLogVisibility: () -> Unit, // Funzione per alternare la visibilità
+    isServerRunning: State<Boolean> // Usa State invece di MutableState
 )  {
     Box(modifier = Modifier
         .fillMaxSize()
@@ -86,7 +89,7 @@ fun VideoDisplayComposable(
                 )
             )
         } else {
-            LogDisplayComposable(versionName, onToggleServer, onStopAudioPlayer, onStopVideoPlayer, showLog, toggleLogVisibility)
+            LogDisplayComposable(versionName, onToggleServer, onStopAudioPlayer, onStopVideoPlayer, showLog, toggleLogVisibility, isServerRunning)
         }
     }
 }
