@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +34,16 @@ fun LogColumn(
     listState: LazyListState,
     logMessages: List<LogEntry>
 ) {
+
+    // Aggiungi un LaunchedEffect che si attiva ogni volta che la dimensione di logMessages cambia
+    // per scorrere automaticamente fino all'ultimo elemento
+
+    LaunchedEffect(logMessages.size) {
+        if (logMessages.isNotEmpty()) {
+            listState.animateScrollToItem(logMessages.size - 1)
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
