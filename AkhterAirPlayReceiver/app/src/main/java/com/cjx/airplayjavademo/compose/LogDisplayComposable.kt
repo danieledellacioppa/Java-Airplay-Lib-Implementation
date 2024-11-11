@@ -188,6 +188,11 @@ fun LogDisplayComposable(
                             } else {
                                 Color.Gray
                             }
+                            val labelText = if (label == "Toggle Server" && isServerRunning.value) {
+                                "Server is Running"
+                            } else {
+                                "Turn the Server On"
+                            }
 
                             Button(
                                 onClick = { action.invoke() },  // Ignores the return type of action
@@ -198,7 +203,11 @@ fun LogDisplayComposable(
                                 ),
                                 contentPadding = PaddingValues(1.dp)
                             ) {
-                                Text(label, color = Color.Gray, fontSize = 6.sp)
+                                if (label == "Toggle Server") {
+                                    Text(labelText, color = textColor, fontSize = 4.sp)
+                                } else {
+                                    Text(label, color = Color.Gray, fontSize = 4.sp)
+                                }
                             }
                         }
                     }

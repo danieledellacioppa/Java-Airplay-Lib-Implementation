@@ -24,8 +24,12 @@ import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo
 import com.github.serezhka.jap2server.AirPlayServer
 import com.github.serezhka.jap2server.AirplayDataConsumer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.LinkedList
 
 /**
@@ -77,6 +81,8 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     // Usare StateFlow per tenere traccia dello stato del server
     private val _isServerRunning = MutableStateFlow(false)
     val isServerRunning: StateFlow<Boolean> get() = _isServerRunning
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Main) // Main coroutine scope
 
 
     private var showLog = mutableStateOf(false)
@@ -130,32 +136,32 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     }
 
+    // Starts the server on a background thread
     private fun startServer() {
         if (!isServerRunning.value) {
-            serverThread = Thread({
+            coroutineScope.launch(Dispatchers.IO) {
                 try {
                     airPlayServer.start()
-                    _isServerRunning.value = true
+                    withContext(Dispatchers.Main) { _isServerRunning.value = true }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-            }, "start-server-thread")
-            serverThread?.start()
-            LogRepository.addLog(TAG, "AirPlay server started with threadId: ${serverThread?.id}")
+            }
         }
     }
 
+    // Stops the server on a background thread
     private fun stopServer() {
         if (isServerRunning.value) {
-            try {
-                LogRepository.addLog(TAG, "Stopping AirPlay server with threadId: ${serverThread?.id}")
-                airPlayServer.stop()
-                serverThread?.join()
-                serverThread = null
-                _isServerRunning.value = false
-                LogRepository.addLog(TAG, "AirPlay server stopped and thread terminated.")
-            } catch (e: Exception) {
-                e.printStackTrace()
+            coroutineScope.launch(Dispatchers.IO) {
+                try {
+                    airPlayServer.stop()
+                    serverThread?.join()
+                    serverThread = null
+                    withContext(Dispatchers.Main) { _isServerRunning.value = false }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
@@ -168,7 +174,6 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
         return isServerRunning.value
     }
-
 
     fun stopAudioPlayer() {
         mAudioPlayer?.stopPlayer()
