@@ -69,7 +69,8 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var mVideoPlayer: VideoPlayer? = null
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
-//    private var isConnectionActive by mutableStateOf(false)
+    private val isServerRunning = mutableStateOf(false) // Variabile osservabile per lo stato del server
+
     private var showLog = mutableStateOf(false)
 
 
@@ -94,8 +95,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                     this@MainActivity,
                     isConnectionActive,
                     versionName,
-                    ::startServer,
-                    ::stopServer,
+                    ::toggleServer,
                     ::stopAudioPlayer,
                     ::stopVideoPlayer,
                     showLog.value,
@@ -120,11 +120,12 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     }
 
-    fun startServer() {
-        if (serverThread == null || !serverThread!!.isAlive) {
-            serverThread = Thread(Runnable {
+    private fun startServer() {
+        if (!isServerRunning.value) {
+            serverThread = Thread({
                 try {
                     airPlayServer.start()
+                    isServerRunning.value = true
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -134,17 +135,29 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
-    fun stopServer() {
-        try {
-            LogRepository.addLog(TAG, "Stopping AirPlay server with threadId: ${serverThread?.id}")
-            airPlayServer.stop() // Ferma il server AirPlay
-            serverThread?.join() // Attende la terminazione del thread
-            serverThread = null
-            LogRepository.addLog(TAG, "AirPlay server stopped and thread terminated.")
-        } catch (e: Exception) {
-            e.printStackTrace()
+    private fun stopServer() {
+        if (isServerRunning.value) {
+            try {
+                LogRepository.addLog(TAG, "Stopping AirPlay server with threadId: ${serverThread?.id}")
+                airPlayServer.stop()
+                serverThread?.join()
+                serverThread = null
+                isServerRunning.value = false
+                LogRepository.addLog(TAG, "AirPlay server stopped and thread terminated.")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
+
+    fun toggleServer() {
+        if (isServerRunning.value) {
+            stopServer()
+        } else {
+            startServer()
+        }
+    }
+
 
     fun stopAudioPlayer() {
         mAudioPlayer?.stopPlayer()

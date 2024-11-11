@@ -23,8 +23,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LogDisplayComposable(
     versionName: String,
-    onStartServer: () -> Unit,
-    onStopServer: () -> Unit,
+    onToggleServer: () -> Unit,
     onStopAudioPlayer: () -> Unit,
     onStopVideoPlayer: () -> Unit,
     showLog: Boolean,
@@ -153,8 +152,7 @@ fun LogDisplayComposable(
             // Mostra la lista dei pulsanti solo se showButtons è true
             if (showButtons) {
                 val buttons = listOf(
-                    "Start Server" to onStartServer,
-                    "Stop Server" to onStopServer,
+                    "Toggle Server" to onToggleServer,
                     "Stop Audio" to onStopAudioPlayer,
                     "Stop Video" to onStopVideoPlayer,
                     "Toggle Log" to toggleLogVisibility

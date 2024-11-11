@@ -35,8 +35,7 @@ fun VideoDisplayComposable(
     callback: SurfaceHolder.Callback,
     isConnectionActive: Boolean,
     versionName: String,
-    onStartServer: () -> Unit, // Funzione per avviare il server
-    onStopServer: () -> Unit, // Funzione per fermare il server
+    onToggleServer: () -> Unit,
     onStopAudioPlayer: () -> Unit, // Funzione per fermare l'audio player
     onStopVideoPlayer: () -> Unit, // Funzione per fermare il video player
     showLog: Boolean, // Nuovo parametro per la visibilità del log
@@ -87,7 +86,7 @@ fun VideoDisplayComposable(
                 )
             )
         } else {
-            LogDisplayComposable(versionName, onStartServer, onStopServer, onStopAudioPlayer, onStopVideoPlayer, showLog, toggleLogVisibility)
+            LogDisplayComposable(versionName, onToggleServer, onStopAudioPlayer, onStopVideoPlayer, showLog, toggleLogVisibility)
         }
     }
 }
