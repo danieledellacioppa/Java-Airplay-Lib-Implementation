@@ -68,6 +68,7 @@ public class MirroringReceiver implements Runnable {
     private volatile boolean running = true; // Flag per controllare lo stato di esecuzione
     private ChannelFuture channelFuture;
     private static final String TAG = "MirroringReceiver";
+    private static final int MAX_RETRIES = 5;
 
     public MirroringReceiver(int port, MirroringHandler mirroringHandler) {
         this.port = port;
@@ -105,7 +106,7 @@ public class MirroringReceiver implements Runnable {
 
         // Blocco 2: Avvio del binding del server
         try {
-                if (!isPortAvailable(port)) {
+                if (!isPortAvailable(port, MAX_RETRIES)) {
                     Log.e(TAG, "Port " + port + " is already in use. Exiting...");
                     LogRepository.INSTANCE.addLog(TAG, "Port " + port + " is already in use. Exiting...", 'E');
                     return;
@@ -167,15 +168,35 @@ public class MirroringReceiver implements Runnable {
     }
 
 
-    // Metodo per controllare se la porta è libera
-    private boolean isPortAvailable(int port) {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            serverSocket.setReuseAddress(true);
-            return true;
-        } catch (IOException e) {
-            return false;
+    /**
+     * This method checks if the specified port is available for binding.
+     * It retries the check up to the specified number of times.
+     * @param port
+     * @param maxRetries
+     * @return
+     */
+    private boolean isPortAvailable(int port, int maxRetries) {
+        for (int i = 0; i < maxRetries; i++) {
+            LogRepository.INSTANCE.addLog(TAG, "Checking port availability for mirroring receiver " + threadID, 'I');
+            LogRepository.INSTANCE.addLog(TAG, "Attempt " + (i + 1) + " of " + maxRetries, 'I');
+            try (ServerSocket serverSocket = new ServerSocket(port)) {
+                serverSocket.setReuseAddress(true);
+                LogRepository.INSTANCE.addLog(TAG, "Port " + port + " is available.", 'I');
+                return true;
+            } catch (IOException e) {
+                try {
+                    LogRepository.INSTANCE.addLog(TAG, "Port " + port + " is not available. Retrying...", 'W');
+                    Thread.sleep(100); // Delay before retrying
+                } catch (InterruptedException ie) {
+                    LogRepository.INSTANCE.addLog(TAG, "Interrupted while waiting to retry port check", 'E');
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
+        LogRepository.INSTANCE.addLog(TAG, "Port " + port + " is not available after " + maxRetries + " retries.", 'E');
+        return false;
     }
+
 
     // Metodo per chiudere il canale in modo sicuro
     private void closeChannel() {

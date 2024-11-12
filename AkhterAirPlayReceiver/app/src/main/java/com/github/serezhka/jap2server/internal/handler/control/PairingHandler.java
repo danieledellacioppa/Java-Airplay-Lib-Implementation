@@ -26,6 +26,7 @@ public class PairingHandler extends ControlHandler {
             case "/info": {
                 DefaultFullHttpResponse response = createResponseForRequest(request);
                 session.getAirPlay().info(new ByteBufOutputStream(response.content()));
+                LogRepository.INSTANCE.addLog("PairingHandler", "info", 'I');
                 return sendResponse(ctx, request, response);
             }
             case "/pair-setup": {
@@ -38,6 +39,7 @@ public class PairingHandler extends ControlHandler {
                 DefaultFullHttpResponse response = createResponseForRequest(request);
                 session.getAirPlay().pairVerify(new ByteBufInputStream(request.content()),
                         new ByteBufOutputStream(response.content()));
+                LogRepository.INSTANCE.addLog("PairingHandler", "pair-verify", 'I');
                 return sendResponse(ctx, request, response);
             }
         }

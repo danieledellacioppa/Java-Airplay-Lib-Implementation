@@ -126,24 +126,29 @@ public class RTSPHandler extends ControlHandler {
                         break;
                 }
             }
+            LogRepository.INSTANCE.addLog(TAG, "RTSP SETUP response sent", 'I');
             return sendResponse(ctx, request, response);
         } else if (RtspMethods.GET_PARAMETER.equals(request.method())) {
             byte[] content = "volume: 1.000000\r\n".getBytes(StandardCharsets.US_ASCII);
             response.content().writeBytes(content);
+            LogRepository.INSTANCE.addLog(TAG, "GET_PARAMETER response sent", 'I');
             return sendResponse(ctx, request, response);
         } else if (RtspMethods.RECORD.equals(request.method())) {
 //
 //            session.getAirPlay().printPlist("RECORD ",new ByteBufInputStream(request.content()));
 //            response.headers().add("Audio-Latency", "11025");
 //            response.headers().add("Audio-Jack-Status", "connected; type=analog");
+            LogRepository.INSTANCE.addLog(TAG, "RECORD response sent", 'I');
             return sendResponse(ctx, request, response);
         } else if (RtspMethods.SET_PARAMETER.equals(request.method())) {
             session.getAirPlay().printPlist("SET_PARAMETER ",new ByteBufInputStream(request.content()));
 
             int volume = session.getAirPlay().rtspSetParameterInfo(new ByteBufInputStream(request.content()));
             // todo 设置音量
+            LogRepository.INSTANCE.addLog(TAG, "SET_PARAMETER response sent", 'I');
             return sendResponse(ctx, request, response);
         } else if ("FLUSH".equals(request.method().toString())) {
+            LogRepository.INSTANCE.addLog(TAG, "FLUSH response sent", 'I');
             return sendResponse(ctx, request, response);
         } else if (RtspMethods.TEARDOWN.equals(request.method())) {
             session.getAirPlay().printPlist("TEARDOWN ",new ByteBufInputStream(request.content()));
@@ -177,10 +182,12 @@ public class RTSPHandler extends ControlHandler {
                 LogRepository.INSTANCE.setConnection(false);
                 LogRepository.INSTANCE.addLog(TAG, "setConnection(false)", 'I');
             }
+            LogRepository.INSTANCE.addLog(TAG, "TEARDOWN response sent", 'I');
             return sendResponse(ctx, request, response);
         } else if ("POST".equals(request.method().toString()) && request.uri().equals("/audioMode")) {
             session.getAirPlay().printPlist("audioMode ",new ByteBufInputStream(request.content()));
 
+            Log.d("RTSPHandler", "POST: session.getAirPlay().isPairVerified() = " + session.getAirPlay().isPairVerified());
             return sendResponse(ctx, request, response);
         }
         return false;

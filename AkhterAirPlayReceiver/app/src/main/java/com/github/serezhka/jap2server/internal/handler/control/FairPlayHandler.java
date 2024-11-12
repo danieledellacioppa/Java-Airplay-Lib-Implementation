@@ -1,5 +1,6 @@
 package com.github.serezhka.jap2server.internal.handler.control;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2server.internal.handler.session.Session;
 import com.github.serezhka.jap2server.internal.handler.session.SessionManager;
 import io.netty.buffer.ByteBufInputStream;
@@ -23,6 +24,7 @@ public class FairPlayHandler extends ControlHandler {
             DefaultFullHttpResponse response = createResponseForRequest(request);
             session.getAirPlay().fairPlaySetup(new ByteBufInputStream(request.content()),
                     new ByteBufOutputStream(response.content()));
+            LogRepository.INSTANCE.addLog("FairPlayHandler", "FairPlay setup", 'I');
             return sendResponse(ctx, request, response);
         }
         return false;

@@ -1,5 +1,6 @@
 package com.github.serezhka.jap2server.internal.handler.control;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2server.internal.handler.session.Session;
 import com.github.serezhka.jap2server.internal.handler.session.SessionManager;
 import io.netty.channel.ChannelHandler;
@@ -18,6 +19,7 @@ public class HeartBeatHandler extends ControlHandler {
     protected boolean handleRequest(ChannelHandlerContext ctx, Session session, FullHttpRequest request) {
         if (request.uri().equals("/feedback")) {
             DefaultFullHttpResponse response = createResponseForRequest(request);
+            LogRepository.INSTANCE.addLog("HeartBeatHandler", "HeartBeat", 'I');
             return sendResponse(ctx, request, response);
         }
         return false;
