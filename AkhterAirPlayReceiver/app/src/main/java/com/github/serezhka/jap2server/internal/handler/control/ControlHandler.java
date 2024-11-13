@@ -35,7 +35,7 @@ public abstract class ControlHandler extends ChannelInboundHandlerAdapter {
     @Override
     public final void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (!(msg instanceof FullHttpRequest && handleRequest(ctx, (FullHttpRequest) msg))) {
-            super.channelRead(ctx, msg);
+            super.channelRead((io.netty.channel.ChannelHandlerContext) ctx, msg);
         }
     }
 
