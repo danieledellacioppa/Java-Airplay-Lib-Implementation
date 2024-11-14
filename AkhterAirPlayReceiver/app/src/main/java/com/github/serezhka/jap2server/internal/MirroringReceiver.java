@@ -143,9 +143,9 @@ public class MirroringReceiver implements Runnable {
                 LogRepository.INSTANCE.addLog(TAG, "Error starting mirroring receiver" + threadID, 'E');
         } finally {
             LogRepository.INSTANCE.setConnection(false);
-            Log.w(TAG, "Mirroring receiver" + threadID + " shutting down...");
-            closeChannel();
-            // Chiusura sincrona dei gruppi di eventi con ritardo per liberare risorse
+//            Log.w(TAG, "Mirroring receiver" + threadID + " shutting down...");
+//            closeChannel();
+//            // Chiusura sincrona dei gruppi di eventi con ritardo per liberare risorse
             bossGroup.shutdownGracefully().syncUninterruptibly();
             workerGroup.shutdownGracefully().syncUninterruptibly();
 

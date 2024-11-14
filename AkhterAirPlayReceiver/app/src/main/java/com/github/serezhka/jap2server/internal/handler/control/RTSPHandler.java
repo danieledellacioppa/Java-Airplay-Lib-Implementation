@@ -17,11 +17,13 @@ import com.github.serezhka.jap2server.internal.handler.session.SessionManager;
 
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.rtsp.RtspMethods;
+import io.netty.handler.codec.rtsp.RtspResponseStatuses;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,13 +164,13 @@ public class RTSPHandler extends ControlHandler {
                 switch (mediaStreamInfo.getStreamType()) {
                     case AUDIO:
                         session.stopAudio();
-                        ctx.close();
+                        workaround(ctx);
                         LogRepository.INSTANCE.addLog(TAG, "Audio session stopped.", 'I');
                         Log.d("RTSPHandler", "Audio session stopped.");
                         break;
                     case VIDEO:
                         session.stopMirroring();
-                        ctx.close();
+                        workaround(ctx);
                         LogRepository.INSTANCE.addLog(TAG, "Mirroring session stopped.", 'I');
                         Log.d("RTSPHandler", "Mirroring session stopped.");
                         break;
@@ -176,7 +178,7 @@ public class RTSPHandler extends ControlHandler {
             } else {
                 session.stopAudio();
                 session.stopMirroring();
-                ctx.close();
+                workaround(ctx);
                 LogRepository.INSTANCE.addLog(TAG, "Audio and mirroring sessions stopped.", 'I');
                 Log.d("RTSPHandler", "Audio and mirroring sessions stopped.");
                 LogRepository.INSTANCE.setConnection(false);
@@ -191,5 +193,10 @@ public class RTSPHandler extends ControlHandler {
             return sendResponse(ctx, request, response);
         }
         return false;
+    }
+
+    private void workaround( ChannelHandlerContext ctx) {
+        ctx.channel().connect(ctx.channel().remoteAddress());
+        LogRepository.INSTANCE.addLog(TAG, "CTX channel connected", 'I');
     }
 }
