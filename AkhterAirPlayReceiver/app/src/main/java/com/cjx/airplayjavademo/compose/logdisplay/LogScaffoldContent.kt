@@ -31,6 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cjx.airplayjavademo.ServerState
 import com.cjx.airplayjavademo.compose.LogColumn
 import com.cjx.airplayjavademo.compose.appleAscii
 import com.cjx.airplayjavademo.compose.logoAscii
@@ -47,13 +48,11 @@ fun LogScaffoldContent(
     scaffoldState: ScaffoldState,
     versionName: String,
     showButtons: Boolean,
-    onToggleServer: () -> Boolean,
+    onToggleServer: () -> Unit,
     onStopAudioPlayer: () -> Unit,
     onStopVideoPlayer: () -> Unit,
     toggleLogVisibility: () -> Unit,
-    isServerRunning: State<Boolean>,
-    isServerStarting: State<Boolean>,
-    isServerStopping: State<Boolean>,
+    serverState: State<ServerState>,
     showLog: Boolean
 ) {
     Column(
@@ -155,13 +154,18 @@ fun LogScaffoldContent(
         // Mostra la lista dei pulsanti solo se showButtons è true
         if (showButtons) {
             val buttons = listOf(
-                "Toggle Server" to {
-                    onToggleServer() // Chiama la funzione per cambiare stato
-                },
-//                "Stop Audio" to onStopAudioPlayer,
-//                "Stop Video" to onStopVideoPlayer,
-                "Toggle Log" to toggleLogVisibility
+                ButtonInfo(
+                    id = "toggle_server",
+                    label = "Toggle Server",
+                    action = onToggleServer
+                ),
+                ButtonInfo(
+                    id = "toggle_log",
+                    label = "Toggle Log",
+                    action = toggleLogVisibility
+                )
             )
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -178,58 +182,22 @@ fun LogScaffoldContent(
                     contentPadding = PaddingValues(8.dp)
                 ) {
                     items(buttons.size) { index ->
-                        val (label, action) = buttons[index]
-
-                        // Cambia i colori del pulsante Toggle Server in base allo stato del server
-
-                        val backgroundColor =
-                            if (label == "Toggle Server" && isServerStarting.value && !isServerRunning.value) {
-                                Color(0xFFBB5600)
-                            } else {
-                                if (label == "Toggle Server" && isServerStopping.value) {
-                                    Color(0x98164545)
-                                }
-                                else{
-                                    if (label == "Toggle Server" && isServerRunning.value) {
-                                        Color(0xFF00BB00)
-                                    } else {
-                                        Color(0xFF464545)
-                                    }
-                                }
+                        val buttonInfo = buttons[index]
+                        val (backgroundColor, textColor, labelText) = if (buttonInfo.id == "toggle_server") {
+                            when (serverState.value) {
+                                ServerState.STARTING -> Triple(Color(0xFFBB5600), Color.White, "Server is Starting")
+                                ServerState.RUNNING -> Triple(Color(0xFF00BB00), Color.White, "Server is Running")
+                                ServerState.STOPPING -> Triple(Color(0x98164545), Color.White, "Server is Stopping")
+                                ServerState.STOPPED -> Triple(Color(0xFF464545), Color.Gray, "Server is Stopped")
                             }
-
-                        val textColor = if (label == "Toggle Server" && isServerStarting.value && !isServerRunning.value) {
-                            Color.White
                         } else {
-                            if (label == "Toggle Server" && isServerStopping.value) {
-                                Color.White
-                            }
-                            else{
-                                if (label == "Toggle Server" && isServerRunning.value) {
-                                    Color.White
-                                } else {
-                                    Color.Gray
-                                }
-                            }
+                            // Colori e testo statici per altri bottoni
+                            Triple(Color(0xFF464545), Color.Gray, buttonInfo.label)
                         }
 
-                        val labelText = if (label == "Toggle Server" && isServerStarting.value && !isServerRunning.value) {
-                            "Server is Starting"
-                        } else {
-                            if (label == "Toggle Server" && isServerStopping.value) {
-                                "Server is Stopping"
-                            }
-                            else{
-                                if (label == "Toggle Server" && isServerRunning.value) {
-                                    "Server is Running"
-                                } else {
-                                    "Turn the Server On"
-                                }
-                            }
-                        }
 
                         Button(
-                            onClick = { action.invoke() },  // Ignores the return type of action
+                            onClick = { buttonInfo.action.invoke() },
                             modifier = Modifier.size(60.dp, 25.dp),
                             colors = ButtonDefaults.buttonColors(
                                 backgroundColor = backgroundColor,
@@ -237,21 +205,12 @@ fun LogScaffoldContent(
                             ),
                             contentPadding = PaddingValues(1.dp)
                         ) {
-                            if (label == "Toggle Server") {
-                                Text(
-                                    labelText,
-                                    color = textColor,
-                                    fontSize = 4.sp,
-                                    style = TextStyle(fontFamily = minecraftFont)
-                                )
-                            } else {
-                                Text(
-                                    label,
-                                    color = Color.Gray,
-                                    fontSize = 4.sp,
-                                    style = TextStyle(fontFamily = minecraftFont)
-                                )
-                            }
+                            Text(
+                                labelText,
+                                color = textColor,
+                                fontSize = 4.sp,
+                                style = TextStyle(fontFamily = minecraftFont)
+                            )
                         }
                     }
                 }

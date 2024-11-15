@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.cjx.airplayjavademo.ServerState
 import com.cjx.airplayjavademo.ui.theme.Gray40
 import kotlinx.coroutines.delay
 import java.time.LocalTime
@@ -37,14 +38,12 @@ fun VideoDisplayComposable(
     callback: SurfaceHolder.Callback,
     isConnectionActive: Boolean,
     versionName: String,
-    onToggleServer: () -> Boolean, // Funzione per attivare/disattivare il server
+    onToggleServer: () -> Unit, // Funzione per attivare/disattivare il server
     onStopAudioPlayer: () -> Unit, // Funzione per fermare l'audio player
     onStopVideoPlayer: () -> Unit, // Funzione per fermare il video player
     showLog: Boolean, // Nuovo parametro per la visibilità del log
     toggleLogVisibility: () -> Unit, // Funzione per alternare la visibilità
-    isServerRunning: State<Boolean>, // Usa State invece di MutableState
-    isServerStarting: State<Boolean>,
-    isServerStopping: State<Boolean>
+    serverState: State<ServerState> // Stato del server
 )  {
     Box(modifier = Modifier
         .fillMaxSize()
@@ -91,7 +90,15 @@ fun VideoDisplayComposable(
                 )
             )
         } else {
-            LogDisplayComposable(versionName, onToggleServer, onStopAudioPlayer, onStopVideoPlayer, showLog, toggleLogVisibility, isServerRunning, isServerStarting, isServerStopping)
+            LogDisplayComposable(
+                versionName,
+                onToggleServer,
+                onStopAudioPlayer,
+                onStopVideoPlayer,
+                showLog,
+                toggleLogVisibility,
+                serverState
+            )
         }
     }
 }

@@ -34,20 +34,19 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.cjx.airplayjavademo.ServerState
 import com.cjx.airplayjavademo.compose.logdisplay.LogScaffoldContent
 import com.cjx.airplayjavademo.ui.theme.Gray40
 
 @Composable
 fun LogDisplayComposable(
     versionName: String,
-    onToggleServer: () -> Boolean,  // Cambiato il tipo di ritorno per riflettere lo stato attuale
+    onToggleServer: () -> Unit,  // Cambiato il tipo di ritorno per riflettere lo stato attuale
     onStopAudioPlayer: () -> Unit,
     onStopVideoPlayer: () -> Unit,
     showLog: Boolean,
     toggleLogVisibility: () -> Unit,
-    isServerRunning: State<Boolean>, // Usa State invece di MutableState
-    isServerStarting: State<Boolean>,
-    isServerStopping: State<Boolean>
+    serverState: State<ServerState>,
 ) {
     val scaffoldState = rememberScaffoldState()
     var showButtons by remember { mutableStateOf(true) }
@@ -58,17 +57,11 @@ fun LogDisplayComposable(
         bottomBar = {
             Row(
                 modifier = Modifier
-//                    .fillMaxWidth()
                     .height(56.dp)
                     .background(Color.Black.copy(alpha = 0.3f))
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-//                Text(
-//                    text = "toolbar",
-//                    style = MaterialTheme.typography.h6,
-//                    color = Color.White
-//                )
                 Spacer(modifier = Modifier.weight(1f))
                     Image(
                         modifier = Modifier.clickable { toggleLogVisibility() },
@@ -121,9 +114,7 @@ fun LogDisplayComposable(
             onStopAudioPlayer,
             onStopVideoPlayer,
             toggleLogVisibility,
-            isServerRunning,
-            isServerStarting,
-            isServerStopping,
+            serverState,
             showLog
         )
     }

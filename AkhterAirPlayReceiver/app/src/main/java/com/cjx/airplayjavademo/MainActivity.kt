@@ -80,17 +80,9 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
 
-    // Usare StateFlow per tenere traccia dello stato del server
-    private val _isServerRunning = MutableStateFlow(false)
-    val isServerRunning: StateFlow<Boolean> get() = _isServerRunning
+    private val _serverState = MutableStateFlow(ServerState.STOPPED)
+    val serverState: StateFlow<ServerState> get() = _serverState
 
-    // Usare StateFlow per tenere traccia delle transizioni di connessione del server
-    private val _isServerStarting = MutableStateFlow(false)
-    val isServerStarting: StateFlow<Boolean> get() = _isServerStarting
-
-    // Usare StateFlow per tenere traccia della transizione di disconnessione del server
-    private val _isServerStopping = MutableStateFlow(false)
-    val isServerStopping: StateFlow<Boolean> get() = _isServerStopping
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main) // Main coroutine scope
 
@@ -115,9 +107,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         window.navigationBarColor = Gray40.toArgb()
         setContent {
             BioAuthenticatorTheme {
-                val isServerRunningState = isServerRunning.collectAsState()
-                val isServerStarting = isServerStarting.collectAsState()
-                val isServerStopping = isServerStopping.collectAsState()
+                val serverState = serverState.collectAsState()
 
                 VideoDisplayComposable(
                     this@MainActivity,
@@ -128,9 +118,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                     ::stopVideoPlayer,
                     showLog.value,
                     ::toggleLogVisibility,
-                    isServerRunningState,
-                    isServerStarting,
-                    isServerStopping
+                    serverState
                 )
             }
         }
@@ -152,39 +140,32 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         toggleLogVisibility()
     }
 
-    // Starts the server on a background thread
     private fun startServer() {
-        if (!isServerRunning.value) {
-            _isServerStarting.value = true
-            _isServerStopping.value = false
+        if (_serverState.value == ServerState.STOPPED) {
+            _serverState.value = ServerState.STARTING
             Toast.makeText(this, "Starting Airplay server...", Toast.LENGTH_SHORT).show()
             coroutineScope.launch(Dispatchers.IO) {
                 try {
                     airPlayServer.start()
-                    withContext(Dispatchers.Main) { _isServerRunning.value = true }
+                    withContext(Dispatchers.Main) { _serverState.value = ServerState.RUNNING }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    withContext(Dispatchers.Main) { _serverState.value = ServerState.STOPPED }
                 }
             }
         }
     }
 
-    // Stops the server on a background thread
     private fun stopServer() {
-        if (isServerRunning.value) {
-            _isServerStopping.value = true
-            _isServerStarting.value = false
+        if (_serverState.value == ServerState.RUNNING) {
+            _serverState.value = ServerState.STOPPING
             Toast.makeText(this, "Stopping server...", Toast.LENGTH_SHORT).show()
             coroutineScope.launch(Dispatchers.IO) {
                 try {
-                    // stampa il valore di serverThread
-                    LogRepository.addLog(TAG, "before stopping Server thread was: $serverThread")
                     airPlayServer.stop()
-                    LogRepository.addLog(TAG, "Server stopped.")
                     serverThread?.join()
-                    LogRepository.addLog(TAG, "Server thread joined.")
                     serverThread = null
-                    withContext(Dispatchers.Main) { _isServerRunning.value = false }
+                    withContext(Dispatchers.Main) { _serverState.value = ServerState.STOPPED }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -192,13 +173,18 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
-    fun toggleServer(): Boolean {
-        if (isServerRunning.value) {
+
+    fun toggleServer() {
+        if (_serverState.value == ServerState.RUNNING) {
             stopServer()
         } else {
-            startServer()
+            if (_serverState.value == ServerState.STOPPED){
+                startServer()
+            } else {
+                LogRepository.addLog(TAG, "Server is in an invalid state: ${_serverState.value}, try again later.")
+                Toast.makeText(this, "Server is in an invalid state: ${_serverState.value}, try again later.", Toast.LENGTH_SHORT).show()
+            }
         }
-        return isServerRunning.value
     }
 
     fun stopAudioPlayer() {
