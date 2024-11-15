@@ -2,6 +2,7 @@ package com.github.serezhka.jap2server.internal.handler.control;
 
 import android.util.Log;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2server.internal.handler.session.Session;
 import com.github.serezhka.jap2server.internal.handler.session.SessionManager;
 
@@ -40,7 +41,9 @@ public abstract class ControlHandler extends ChannelInboundHandlerAdapter {
     }
 
     private boolean handleRequest(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-//        Log.i("TAG", "handleRequest: " + request.toString());
+
+        LogRepository.INSTANCE.addLog("ControlHandler", "handleRequest: " + request.method() + " " + request.uri(), 'I');
+        LogRepository.INSTANCE.addLog("ControlHandler", "handling request with content: " + request.content().toString(), 'I');
         return handleRequest(ctx, sessionManager.getSession(request.headers().get(HEADER_ACTIVE_REMOTE)), request);
     }
 

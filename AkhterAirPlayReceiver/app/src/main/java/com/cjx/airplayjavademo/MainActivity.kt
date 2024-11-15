@@ -4,6 +4,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.MutableState
@@ -78,9 +79,18 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var mVideoPlayer: VideoPlayer? = null
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
+
     // Usare StateFlow per tenere traccia dello stato del server
     private val _isServerRunning = MutableStateFlow(false)
     val isServerRunning: StateFlow<Boolean> get() = _isServerRunning
+
+    // Usare StateFlow per tenere traccia delle transizioni di connessione del server
+    private val _isServerStarting = MutableStateFlow(false)
+    val isServerStarting: StateFlow<Boolean> get() = _isServerStarting
+
+    // Usare StateFlow per tenere traccia della transizione di disconnessione del server
+    private val _isServerStopping = MutableStateFlow(false)
+    val isServerStopping: StateFlow<Boolean> get() = _isServerStopping
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main) // Main coroutine scope
 
@@ -106,6 +116,9 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         setContent {
             BioAuthenticatorTheme {
                 val isServerRunningState = isServerRunning.collectAsState()
+                val isServerStarting = isServerStarting.collectAsState()
+                val isServerStopping = isServerStopping.collectAsState()
+
                 VideoDisplayComposable(
                     this@MainActivity,
                     isConnectionActive,
@@ -115,7 +128,9 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                     ::stopVideoPlayer,
                     showLog.value,
                     ::toggleLogVisibility,
-                    isServerRunningState
+                    isServerRunningState,
+                    isServerStarting,
+                    isServerStopping
                 )
             }
         }
@@ -133,12 +148,16 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         deviceModel = deviceModel.replace("\n", "")
 
         airPlayServer = AirPlayServer("AKHTER:$deviceModel", 7000, 49152, airplayDataConsumer)
-
+        startServer()
+        toggleLogVisibility()
     }
 
     // Starts the server on a background thread
     private fun startServer() {
         if (!isServerRunning.value) {
+            _isServerStarting.value = true
+            _isServerStopping.value = false
+            Toast.makeText(this, "Starting Airplay server...", Toast.LENGTH_SHORT).show()
             coroutineScope.launch(Dispatchers.IO) {
                 try {
                     airPlayServer.start()
@@ -153,10 +172,17 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     // Stops the server on a background thread
     private fun stopServer() {
         if (isServerRunning.value) {
+            _isServerStopping.value = true
+            _isServerStarting.value = false
+            Toast.makeText(this, "Stopping server...", Toast.LENGTH_SHORT).show()
             coroutineScope.launch(Dispatchers.IO) {
                 try {
+                    // stampa il valore di serverThread
+                    LogRepository.addLog(TAG, "before stopping Server thread was: $serverThread")
                     airPlayServer.stop()
+                    LogRepository.addLog(TAG, "Server stopped.")
                     serverThread?.join()
+                    LogRepository.addLog(TAG, "Server thread joined.")
                     serverThread = null
                     withContext(Dispatchers.Main) { _isServerRunning.value = false }
                 } catch (e: Exception) {

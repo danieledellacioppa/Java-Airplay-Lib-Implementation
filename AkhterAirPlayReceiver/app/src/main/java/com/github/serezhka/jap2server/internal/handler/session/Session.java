@@ -71,7 +71,9 @@ public class Session {
             mirroringReceiver.shutdown(); // Arresta MirroringReceiver in modo ordinato
             try {
                 if (airPlayReceiverThread != null && airPlayReceiverThread.isAlive()) {
+                    LogRepository.INSTANCE.addLog("Session", "Joining MirroringReceiver thread", 'I');
                     airPlayReceiverThread.join(); // Assicura la chiusura completa del thread
+                    LogRepository.INSTANCE.addLog("Session", "MirroringReceiver thread joined", 'I');
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

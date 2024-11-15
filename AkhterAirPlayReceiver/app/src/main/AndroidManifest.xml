@@ -13,8 +13,8 @@
     <application
         android:name="com.cjx.airplayjavademo.MyApplication"
         android:allowBackup="true"
-        android:icon="@drawable/airplayakhter"
-        android:label="Akhter Airplay"
+        android:icon="@drawable/apple"
+        android:label="Akhter AppleCast"
         android:largeHeap="true"
         android:roundIcon="@drawable/airplayakhter"
         android:supportsRtl="true"

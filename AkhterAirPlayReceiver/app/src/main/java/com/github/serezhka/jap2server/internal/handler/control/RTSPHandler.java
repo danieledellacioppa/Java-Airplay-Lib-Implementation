@@ -52,6 +52,7 @@ public class RTSPHandler extends ControlHandler {
     protected boolean handleRequest(ChannelHandlerContext ctx, Session session, FullHttpRequest request) throws Exception {
         DefaultFullHttpResponse response = createResponseForRequest(request);
         if (RtspMethods.SETUP.equals(request.method())) {
+            LogRepository.INSTANCE.addLog(TAG, "RTSP SETUP request received", 'I');
 
             // Controllo se una sessione di mirroring è già attiva
             if (session.isMirroringActive()) {
@@ -74,9 +75,13 @@ public class RTSPHandler extends ControlHandler {
             }
 
             MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
+            LogRepository.INSTANCE.addLog(TAG, "Media stream info: " + mediaStreamInfo, 'I');
+
             if (mediaStreamInfo == null) {
                 request.content().resetReaderIndex();
+                LogRepository.INSTANCE.addLog(TAG, "Media stream info is null", 'E');
                 session.getAirPlay().rtspSetupEncryption(new ByteBufInputStream(request.content()));
+                LogRepository.INSTANCE.addLog(TAG, "RTSP SETUP ENCRYPTION request received", 'I');
             } else {
                 switch (mediaStreamInfo.getStreamType()) {
                     case AUDIO:

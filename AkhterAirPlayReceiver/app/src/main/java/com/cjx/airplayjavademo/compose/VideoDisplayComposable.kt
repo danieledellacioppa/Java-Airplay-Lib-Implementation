@@ -42,7 +42,9 @@ fun VideoDisplayComposable(
     onStopVideoPlayer: () -> Unit, // Funzione per fermare il video player
     showLog: Boolean, // Nuovo parametro per la visibilità del log
     toggleLogVisibility: () -> Unit, // Funzione per alternare la visibilità
-    isServerRunning: State<Boolean> // Usa State invece di MutableState
+    isServerRunning: State<Boolean>, // Usa State invece di MutableState
+    isServerStarting: State<Boolean>,
+    isServerStopping: State<Boolean>
 )  {
     Box(modifier = Modifier
         .fillMaxSize()
@@ -89,7 +91,7 @@ fun VideoDisplayComposable(
                 )
             )
         } else {
-            LogDisplayComposable(versionName, onToggleServer, onStopAudioPlayer, onStopVideoPlayer, showLog, toggleLogVisibility, isServerRunning)
+            LogDisplayComposable(versionName, onToggleServer, onStopAudioPlayer, onStopVideoPlayer, showLog, toggleLogVisibility, isServerRunning, isServerStarting, isServerStopping)
         }
     }
 }

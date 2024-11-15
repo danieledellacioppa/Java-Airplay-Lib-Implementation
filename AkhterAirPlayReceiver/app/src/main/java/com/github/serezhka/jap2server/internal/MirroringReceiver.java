@@ -100,7 +100,8 @@ public class MirroringReceiver implements Runnable {
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             LogRepository.INSTANCE.addLog(TAG, "ServerBootstrap configured for mirroring receiver " + threadID,'I');
         } catch (Exception e) {
-            Log.e(TAG, "Error during ServerBootstrap configuration for mirroring receiver " + threadID, e);
+//            Log.e(TAG, "Error during ServerBootstrap configuration for mirroring receiver " + threadID, e);
+            LogRepository.INSTANCE.addLog(TAG, "Error during ServerBootstrap configuration for mirroring receiver " + threadID, 'E');
             return;  // Termina l'esecuzione se c'è un errore di configurazione
         }
 
@@ -115,7 +116,7 @@ public class MirroringReceiver implements Runnable {
                 // Avvia il server e attende la chiusura del canale
                 if (running){
                     channelFuture = serverBootstrap.bind().sync();
-                    Log.d(TAG, "Mirroring receiver threadID: " + threadID + " started on port: " + port);
+//                    Log.d(TAG, "Mirroring receiver threadID: " + threadID + " started on port: " + port);
                     LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver threadID: " + threadID + " started on port: " + port, 'I');
                 }
 
@@ -133,7 +134,7 @@ public class MirroringReceiver implements Runnable {
             // Attende che il canale si chiuda
             if (running){
                 channelFuture.channel().closeFuture().sync();
-                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver" + threadID + " channel closed", 'I');
+                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver:[" + threadID + "] channel closed", 'I');
             }
         } catch (InterruptedException e) {
             Log.e(TAG, "Mirroring receiver" + threadID + " interrupted during setup", e);
@@ -199,12 +200,44 @@ public class MirroringReceiver implements Runnable {
 
 
     // Metodo per chiudere il canale in modo sicuro
+
+    /**
+     * questa funzione FORSE dovrebbe tenere il canale aperto per evitare la perdita di risorse nello stile seguente:
+     *
+     *     private void workaround( ChannelHandlerContext ctx) {
+     *         ctx.channel().connect(ctx.channel().remoteAddress());
+     *         LogRepository.INSTANCE.addLog(TAG, "CTX channel connected", 'I');
+     *     }
+     */
+//    private void closeChannel() {
+//        if (channelFuture != null && channelFuture.channel().isOpen()) {
+//            try {
+////                channelFuture.channel().close().sync();
+//
+//                channelFuture.channel().connect(channelFuture.channel().remoteAddress());
+//
+//                LogRepository.INSTANCE.addLog(TAG, "channelFuture.channel() is connected", 'I');
+//            }
+//            catch (Exception e) {
+//                LogRepository.INSTANCE.addLog(TAG, "channelFuture.channel() failed to connect", 'E');
+//            }
+////            catch (InterruptedException e) {
+////                LogRepository.INSTANCE.addLog(TAG, "Failed to close the channel "+ threadID, 'E');
+////                Thread.currentThread().interrupt();
+////            }
+//        } else {
+//            LogRepository.INSTANCE.addLog(TAG, "Channel already closed or not open "+ threadID, 'W');
+//        }
+//    }
+
     private void closeChannel() {
         if (channelFuture != null && channelFuture.channel().isOpen()) {
             try {
                 channelFuture.channel().close().sync();
-                LogRepository.INSTANCE.addLog(TAG, "Channel closed successfully "+ threadID, 'I');
-            } catch (InterruptedException e) {
+
+                LogRepository.INSTANCE.addLog(TAG, "channelFuture.channel() is connected", 'I');
+            }
+            catch (InterruptedException e) {
                 LogRepository.INSTANCE.addLog(TAG, "Failed to close the channel "+ threadID, 'E');
                 Thread.currentThread().interrupt();
             }

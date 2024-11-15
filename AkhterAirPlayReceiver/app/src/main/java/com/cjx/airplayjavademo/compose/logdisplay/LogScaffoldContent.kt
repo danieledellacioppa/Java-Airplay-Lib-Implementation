@@ -52,6 +52,8 @@ fun LogScaffoldContent(
     onStopVideoPlayer: () -> Unit,
     toggleLogVisibility: () -> Unit,
     isServerRunning: State<Boolean>,
+    isServerStarting: State<Boolean>,
+    isServerStopping: State<Boolean>,
     showLog: Boolean
 ) {
     Column(
@@ -73,7 +75,7 @@ fun LogScaffoldContent(
                 }
             }) {
                 Image(
-                    painter = painterResource(R.drawable.airplayakhter),
+                    painter = painterResource(R.drawable.settings),
                     contentDescription = "Settings",
                     modifier = Modifier.size(24.dp)
                 )
@@ -156,8 +158,8 @@ fun LogScaffoldContent(
                 "Toggle Server" to {
                     onToggleServer() // Chiama la funzione per cambiare stato
                 },
-                "Stop Audio" to onStopAudioPlayer,
-                "Stop Video" to onStopVideoPlayer,
+//                "Stop Audio" to onStopAudioPlayer,
+//                "Stop Video" to onStopVideoPlayer,
                 "Toggle Log" to toggleLogVisibility
             )
             Box(
@@ -181,20 +183,49 @@ fun LogScaffoldContent(
                         // Cambia i colori del pulsante Toggle Server in base allo stato del server
 
                         val backgroundColor =
-                            if (label == "Toggle Server" && isServerRunning.value) {
-                                Color(0xFF4CAF50)
+                            if (label == "Toggle Server" && isServerStarting.value && !isServerRunning.value) {
+                                Color(0xFFBB5600)
                             } else {
-                                Color(0xFF464545)
+                                if (label == "Toggle Server" && isServerStopping.value) {
+                                    Color(0x98164545)
+                                }
+                                else{
+                                    if (label == "Toggle Server" && isServerRunning.value) {
+                                        Color(0xFF00BB00)
+                                    } else {
+                                        Color(0xFF464545)
+                                    }
+                                }
                             }
-                        val textColor = if (label == "Toggle Server" && isServerRunning.value) {
+
+                        val textColor = if (label == "Toggle Server" && isServerStarting.value && !isServerRunning.value) {
                             Color.White
                         } else {
-                            Color.Gray
+                            if (label == "Toggle Server" && isServerStopping.value) {
+                                Color.White
+                            }
+                            else{
+                                if (label == "Toggle Server" && isServerRunning.value) {
+                                    Color.White
+                                } else {
+                                    Color.Gray
+                                }
+                            }
                         }
-                        val labelText = if (label == "Toggle Server" && isServerRunning.value) {
-                            "Server is Running"
+
+                        val labelText = if (label == "Toggle Server" && isServerStarting.value && !isServerRunning.value) {
+                            "Server is Starting"
                         } else {
-                            "Turn the Server On"
+                            if (label == "Toggle Server" && isServerStopping.value) {
+                                "Server is Stopping"
+                            }
+                            else{
+                                if (label == "Toggle Server" && isServerRunning.value) {
+                                    "Server is Running"
+                                } else {
+                                    "Turn the Server On"
+                                }
+                            }
                         }
 
                         Button(
@@ -232,6 +263,7 @@ fun LogScaffoldContent(
             val logMessages = remember { LogRepository.getLogs() }
             LogColumn(rememberLazyListState(), logMessages)
         }
+
     }
 }
 

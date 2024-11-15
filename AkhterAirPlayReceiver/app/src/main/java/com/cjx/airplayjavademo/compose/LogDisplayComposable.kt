@@ -45,7 +45,9 @@ fun LogDisplayComposable(
     onStopVideoPlayer: () -> Unit,
     showLog: Boolean,
     toggleLogVisibility: () -> Unit,
-    isServerRunning: State<Boolean> // Usa State invece di MutableState
+    isServerRunning: State<Boolean>, // Usa State invece di MutableState
+    isServerStarting: State<Boolean>,
+    isServerStopping: State<Boolean>
 ) {
     val scaffoldState = rememberScaffoldState()
     var showButtons by remember { mutableStateOf(true) }
@@ -62,11 +64,11 @@ fun LogDisplayComposable(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "toolbar",
-                    style = MaterialTheme.typography.h6,
-                    color = Color.White
-                )
+//                Text(
+//                    text = "toolbar",
+//                    style = MaterialTheme.typography.h6,
+//                    color = Color.White
+//                )
                 Spacer(modifier = Modifier.weight(1f))
                     Image(
                         modifier = Modifier.clickable { toggleLogVisibility() },
@@ -120,6 +122,8 @@ fun LogDisplayComposable(
             onStopVideoPlayer,
             toggleLogVisibility,
             isServerRunning,
+            isServerStarting,
+            isServerStopping,
             showLog
         )
     }

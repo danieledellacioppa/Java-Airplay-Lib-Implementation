@@ -111,20 +111,27 @@ class RTSP {
      */
     MediaStreamInfo getMediaStreamInfo(InputStream rtspSetupPayload) throws Exception {
         // Verifica iniziale della disponibilità di dati nello stream
-        if (rtspSetupPayload == null || rtspSetupPayload.available() == 0) {
+//        if (rtspSetupPayload == null) {
 //            log.error("RTSP setup payload is empty or null");
-//            Log.e(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null");
-            LogRepository.INSTANCE.addLog(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null", 'E');
-            return null;
-        }
+//            LogRepository.INSTANCE.addLog(TAG, "getMediaStreamInfo: RTSP setup payload is empty or null", 'E');
+//            return null;
+//        }
+//
+//        if( rtspSetupPayload.available() == 0){
+//            log.error("rtspSetupPayload.available() == 0");
+//            LogRepository.INSTANCE.addLog(TAG, "getMediaStreamInfo: rtspSetupPayload.available() == 0", 'E');
+//            return null;
+//        }
 
         try {
             // Log della disponibilità di dati nello stream
             log.info("Available bytes in RTSP setup payload: {}", rtspSetupPayload.available());
+            LogRepository.INSTANCE.addLog(TAG, "Available bytes in RTSP setup payload: " + rtspSetupPayload.available(), 'I');
 
             // Parsing del payload RTSP
             NSDictionary rtspSetup = (NSDictionary) BinaryPropertyListParser.parse(rtspSetupPayload);
             log.info("Parsed RTSP setup payload: {}", rtspSetup.toXMLPropertyList());
+            LogRepository.INSTANCE.addLog(TAG, "Parsed RTSP setup payload: " + rtspSetup.toXMLPropertyList(), 'I');
 
             if (rtspSetup.containsKey("streams")) {
                 // Assumiamo che ci sia solo un stream info per richiesta RTSP SETUP
