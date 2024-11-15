@@ -104,28 +104,8 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
             "Unknown"
         }
 
-        window.navigationBarColor = Gray40.toArgb()
-        setContent {
-            BioAuthenticatorTheme {
-                val serverState = serverState.collectAsState()
-
-                VideoDisplayComposable(
-                    this@MainActivity,
-                    isConnectionActive,
-                    versionName,
-                    ::toggleServer,
-                    ::stopAudioPlayer,
-                    ::stopVideoPlayer,
-                    showLog.value,
-                    ::toggleLogVisibility,
-                    serverState
-                )
-            }
-        }
         LogRepository.addLog(TAG, "onCreate: AirPlay server initialized. Version: $versionName")
-        mAudioPlayer = AudioPlayer().apply {
-            start()
-        }
+
 
         //retrieve uname -a and print it via Android Shell
         val process = Runtime.getRuntime().exec("getprop ro.product.product.model")
@@ -135,7 +115,32 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
         //remove the newline character from the device model string
         deviceModel = deviceModel.replace("\n", "")
 
-        airPlayServer = AirPlayServer("AKHTER:$deviceModel", 7000, 49152, airplayDataConsumer)
+        val nameOnNetwork = "AKHTER:$deviceModel"
+
+        window.navigationBarColor = Gray40.toArgb()
+        setContent {
+            BioAuthenticatorTheme {
+                val serverState = serverState.collectAsState()
+
+                VideoDisplayComposable(
+                    this@MainActivity,
+                    isConnectionActive,
+                    versionName,
+                    nameOnNetwork,
+                    ::toggleServer,
+                    ::stopAudioPlayer,
+                    ::stopVideoPlayer,
+                    showLog.value,
+                    ::toggleLogVisibility,
+                    serverState
+                )
+            }
+        }
+        mAudioPlayer = AudioPlayer().apply {
+            start()
+        }
+
+        airPlayServer = AirPlayServer(nameOnNetwork, 7000, 49152, airplayDataConsumer)
         startServer()
         toggleLogVisibility()
     }

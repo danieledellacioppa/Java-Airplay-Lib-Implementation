@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Button
@@ -47,6 +48,7 @@ fun LogScaffoldContent(
     coroutineScope: CoroutineScope,
     scaffoldState: ScaffoldState,
     versionName: String,
+    nameOnNetwork: String,
     showButtons: Boolean,
     onToggleServer: () -> Unit,
     onStopAudioPlayer: () -> Unit,
@@ -101,10 +103,44 @@ fun LogScaffoldContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                   horizontalAlignment = Alignment.CenterHorizontally,
+                     verticalArrangement = Arrangement.Center
                 ) {
+                    Column (
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ){
+                        Text(
+                            text = "AirPlay Receiver",
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontFamily = minecraftFont
+                            )
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Beta Test v",
+                                style = TextStyle(
+                                    fontSize = 10.sp,
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    fontFamily = minecraftFont
+                                )
+                            )
+                            Text(
+                                text = versionName,
+                                style = TextStyle(
+                                    fontSize = 10.sp,
+                                    color = Color.Black.copy(alpha = 0.8f),
+                                    fontFamily = minecraftFont
+                                )
+                            )
+                        }
+                    }
                     Box {
                         Text(
                             text = expandedLogoAscii,
@@ -116,38 +152,40 @@ fun LogScaffoldContent(
                             style = TextStyle(fontSize = 1.sp, color = Color.White),
                             modifier = Modifier.align(Alignment.BottomCenter)
                         )
+
                     }
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Column (
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ){
+                        val nameTextColor = if (serverState.value == ServerState.RUNNING) Color(0xFF00BB00) else Color.White.copy(alpha = 0.7f)
+                        val displayText = if (serverState.value == ServerState.RUNNING) {
+                            "You can now cast from your iPhone to:"
+                        } else {
+                            "Name on Network"
+                        }
+
+                        Text(
+                            text = displayText,
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontFamily = minecraftFont
+                            )
+                        )
+                        Text(
+                            text = nameOnNetwork,
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                color = nameTextColor,
+                                fontFamily = minecraftFont
+                            )
+                        )
+                    }
+
                 }
                 Spacer(modifier = Modifier.height(3.dp))
-                Text(
-                    text = "AirPlay Receiver",
-                    style = TextStyle(
-                        fontSize = 10.sp,
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontFamily = minecraftFont
-                    )
-                )
-                Row(
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "Beta Test v",
-                        style = TextStyle(
-                            fontSize = 10.sp,
-                            color = Color.Gray,
-                            fontFamily = minecraftFont
-                        )
-                    )
-                    Text(
-                        text = versionName,
-                        style = TextStyle(
-                            fontSize = 10.sp,
-                            color = Color.Black.copy(alpha = 0.4f),
-                            fontFamily = minecraftFont
-                        )
-                    )
-                }
             }
         }
 

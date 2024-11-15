@@ -38,6 +38,7 @@ fun VideoDisplayComposable(
     callback: SurfaceHolder.Callback,
     isConnectionActive: Boolean,
     versionName: String,
+    nameOnNetwork: String,
     onToggleServer: () -> Unit, // Funzione per attivare/disattivare il server
     onStopAudioPlayer: () -> Unit, // Funzione per fermare l'audio player
     onStopVideoPlayer: () -> Unit, // Funzione per fermare il video player
@@ -92,6 +93,7 @@ fun VideoDisplayComposable(
         } else {
             LogDisplayComposable(
                 versionName,
+                nameOnNetwork,
                 onToggleServer,
                 onStopAudioPlayer,
                 onStopVideoPlayer,
