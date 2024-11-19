@@ -29,6 +29,7 @@ class VideoPlayer(private val mSurface: Surface) {
                 val inputBuffer = codec.getInputBuffer(index)
                 inputBuffer?.put(packet.nalData)
                 codec.queueInputBuffer(index, 0, packet.nalData.size, packet.pts, 0)
+                LogRepository.addLog(TAG, "Input buffer queued", 'I')
             } catch (e: InterruptedException) {
                 LogRepository.addLog(TAG, "Error while waiting for NALPacket", 'E')
             } catch (e: IllegalStateException) {

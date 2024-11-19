@@ -23,7 +23,9 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +59,38 @@ fun LogScaffoldContent(
     serverState: State<ServerState>,
     showLog: Boolean
 ) {
+
+    // Stato per gestire il messaggio da mostrare
+    val connectionMessage = remember { mutableStateOf("iPhone trying to connect...") }
+    val timerStarted = remember { mutableStateOf(false) }
+
+    // Controllo del log tramite un LaunchedEffect
+    LaunchedEffect(Unit) {
+        while (true) {
+            // Osserva i log ogni 500ms
+            kotlinx.coroutines.delay(500)
+            val logs = LogRepository.getLogs()
+
+            // Trova il log specifico
+            val pairingLog = logs.find { it.tag == "PairingHandler" && it.message == "info" }
+
+            if (pairingLog != null && !timerStarted.value) {
+                timerStarted.value = true // Avvia il timer solo una volta
+                kotlinx.coroutines.delay(5000) // Aspetta 5 secondi
+                val videoPlayerLog = logs.find {
+                    it.tag.contains("VideoPlayer.kt") && it.message.contains("Input buffer queued")
+                }
+
+                // Aggiorna il messaggio in base alla presenza del log
+                connectionMessage.value = if (videoPlayerLog == null) {
+                    "Connessione Fallita, riprova"
+                } else {
+                    "iPhone successfully connected"
+                }
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -259,6 +293,22 @@ fun LogScaffoldContent(
         if (showLog) {
             val logMessages = remember { LogRepository.getLogs() }
             LogColumn(rememberLazyListState(), logMessages)
+        }else{
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = connectionMessage.value,
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        color = Color.White,
+                        fontFamily = minecraftFont
+                    )
+                )
+            }
         }
 
     }
