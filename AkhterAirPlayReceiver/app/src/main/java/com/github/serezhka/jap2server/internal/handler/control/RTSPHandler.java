@@ -17,13 +17,11 @@ import com.github.serezhka.jap2server.internal.handler.session.SessionManager;
 
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.rtsp.RtspMethods;
-import io.netty.handler.codec.rtsp.RtspResponseStatuses;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
