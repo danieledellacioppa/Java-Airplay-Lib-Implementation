@@ -75,15 +75,15 @@ public class AirPlay {
      *
      * @return null if there's no stream info
      */
-    public MediaStreamInfo rtspGetMediaStreamInfo(InputStream in) throws Exception {
-        LogRepository.INSTANCE.addLog("AirPlay", "Getting media stream info...", 'I');
+    public MediaStreamInfo rtspGetMediaStreamInfo(InputStream in, String methodName) throws Exception {
+        LogRepository.INSTANCE.addLog("AirPlay", "Getting media stream info... (called from " + methodName + ")", 'I');
         // Controlla se l'InputStream ha dati
         if (in == null) {
-            LogRepository.INSTANCE.addLog("AirPlay", "InputStream is empty", 'E');
+            LogRepository.INSTANCE.addLog("AirPlay", "InputStream is empty (called from " + methodName + ")", 'E');
             return null;
         }
         if (in.available() == 0) {
-            LogRepository.INSTANCE.addLog("AirPlay", "InputStream is empty", 'E');
+            LogRepository.INSTANCE.addLog("AirPlay", "InputStream is empty (called from " + methodName + ")", 'E');
             return null;
         }
         return rtsp.getMediaStreamInfo(in);

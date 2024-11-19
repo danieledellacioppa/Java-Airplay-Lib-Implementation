@@ -74,7 +74,7 @@ public class RTSPHandler extends ControlHandler {
                 }
             }
 
-            MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
+            MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()), request.method().toString());
             LogRepository.INSTANCE.addLog(TAG, "Media stream info: " + mediaStreamInfo, 'I');
 
             if (mediaStreamInfo == null) {
@@ -164,7 +164,7 @@ public class RTSPHandler extends ControlHandler {
             Log.d("RTSPHandler", "TEARDOWN: request was " + request.content());
             LogRepository.INSTANCE.addLog(TAG, "TEARDOWN: request was " + request.content(), 'I');
 
-            MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()));
+            MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()), request.method().toString());
             if (mediaStreamInfo != null) {
                 switch (mediaStreamInfo.getStreamType()) {
                     case AUDIO:
