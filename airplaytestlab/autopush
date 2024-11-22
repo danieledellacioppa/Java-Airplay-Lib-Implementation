@@ -1,0 +1,17 @@
+#!/bin/sh
+git add --all
+read -r -p "enter comment for this commit:" string
+eval array="( $(printf '%s\n' "$string") )"
+n=${#array[@]}
+i=0
+
+while (("$n" > 0))   # while [ "$n" -gt 0 ] ALSO WORKS
+do
+#    printf "%s \n" "${array[$i]}"
+    final_str=$final_str${array[$i]}$" "
+    i=$i+1
+    n=$n-1
+done
+
+git commit -m "$final_str"
+git push
