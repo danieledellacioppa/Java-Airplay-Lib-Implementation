@@ -1,38 +1,58 @@
 package com.akhter.airplaytestlab
 
 import android.os.Bundle
+import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.akhter.airplaytestlab.ui.theme.AirplaytestlabTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.graphics.toArgb
+import com.akhter.airplaytestlab.compose.VideoDisplayComposable
+import com.akhter.airplaytestlab.tools.LogRepository
+import com.akhter.airplaytestlab.tools.LogRepository.isConnectionActive
+import com.akhter.airplaytestlab.ui.theme.BioAuthenticatorTheme
+import com.akhter.airplaytestlab.ui.theme.Gray40
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import javax.jmdns.JmDNS
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
-    private var jmDNS: JmDNS? = null
-    private val airPlayBonjour = AirPlayBonjour(jmDNS)
+
+    private val _serverState = MutableStateFlow(ServerState.STOPPED)
+    val serverState: StateFlow<ServerState> get() = _serverState
+
+    private var showLog = MutableStateFlow(false)
+
+    private val versionName = "1.0.0"
+    private val nameOnNetwork = "Airplay Test Lab"
+
+    private val airPlayBonjour = AirPlayBonjour(nameOnNetwork)
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
+        LogRepository.addLog("MainActivity", "onCreate")
+        window.navigationBarColor = Gray40.toArgb()
         setContent {
-            AirplaytestlabTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            BioAuthenticatorTheme {
+                val serverState = serverState.collectAsState()
+                val showLogState = showLog.collectAsState()
+
+                VideoDisplayComposable(
+                    this@MainActivity,
+                    isConnectionActive,
+                    versionName,
+                    nameOnNetwork,
+                    ::toggleServer,
+                    ::stopAudioPlayer,
+                    ::stopVideoPlayer,
+                    showLogState.value,
+                    ::toggleLogVisibility,
+                    serverState
+                )
             }
         }
         CoroutineScope(Dispatchers.IO).launch {
@@ -44,24 +64,35 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-//        airPlayBonjour.stopBonjourService()
-        jmDNS?.unregisterAllServices()
-        jmDNS?.close()
+        airPlayBonjour.stopBonjourService()
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    override fun surfaceCreated(holder: SurfaceHolder) {
+        TODO("Not yet implemented")
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AirplaytestlabTheme {
-        Greeting("Android")
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun surfaceDestroyed(holder: SurfaceHolder) {
+        TODO("Not yet implemented")
+    }
+
+    private fun toggleServer() {
+    TODO("Not yet implemented")
+    }
+
+    private fun stopAudioPlayer() {
+    TODO("Not yet implemented")
+    }
+
+    private fun stopVideoPlayer() {
+    TODO("Not yet implemented")
+    }
+
+    // Funzione per alternare la visibilità del log
+    fun toggleLogVisibility() {
+        showLog.value = !showLog.value
     }
 }

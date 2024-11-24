@@ -57,5 +57,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+//    implementation 'androidx.compose.material3:material3:1.3.0'
+    implementation(libs.material3)
+
+//    implementation "androidx.compose.material:material:1.7.4"
+    implementation(libs.androidx.material)
     implementation(libs.jmdns)
 }

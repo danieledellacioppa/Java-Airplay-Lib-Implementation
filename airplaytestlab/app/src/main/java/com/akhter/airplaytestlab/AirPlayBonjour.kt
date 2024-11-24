@@ -4,7 +4,9 @@ import java.net.InetAddress
 import javax.jmdns.JmDNS
 import javax.jmdns.ServiceInfo
 
-class AirPlayBonjour(private var jmDNS: JmDNS?) {
+class AirPlayBonjour(nameOnNetwork: String) {
+    private var jmDNS: JmDNS? = null
+    private val nameOnNetwork = nameOnNetwork
 
     fun startBonjourService() {
         try {
@@ -14,7 +16,7 @@ class AirPlayBonjour(private var jmDNS: JmDNS?) {
                 jmDNS = JmDNS.create(InetAddress.getByName(localIp))
 
                 // Configura i dettagli del servizio
-                val serviceName = "AndroidScreencast"
+                val serviceName = nameOnNetwork // Nome del servizio
                 val serviceType = "_airplay._tcp.local." // Tipo di servizio Bonjour
                 val port = 7000 // Porta del servizio
                 val txtRecord = mapOf(
