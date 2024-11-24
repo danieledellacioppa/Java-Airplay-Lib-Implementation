@@ -239,17 +239,17 @@ fun LogScaffoldContent(
 
                         Button(
                             onClick = { buttonInfo.action.invoke() },
-                            modifier = Modifier.size(60.dp, 25.dp),
+                            modifier = Modifier.size(100.dp, 55.dp),
                             colors = ButtonDefaults.buttonColors(
                                 backgroundColor,
                                 textColor
                             ),
-                            contentPadding = PaddingValues(1.dp)
+                            contentPadding = PaddingValues(10.dp)
                         ) {
                             Text(
                                 labelText,
                                 color = textColor,
-                                fontSize = 4.sp,
+                                fontSize = 14.sp,
                                 style = TextStyle(fontFamily = minecraftFont)
                             )
                         }

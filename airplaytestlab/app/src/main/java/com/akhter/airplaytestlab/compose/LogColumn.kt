@@ -33,6 +33,8 @@ fun LogColumn(
     logMessages: List<LogEntry>
 ) {
 
+    val logsize = 14.sp
+
     // Aggiungi un LaunchedEffect che si attiva ogni volta che la dimensione di logMessages cambia
     // per scorrere automaticamente fino all'ultimo elemento
 
@@ -77,7 +79,7 @@ fun LogColumn(
                         text = logMessages[index].time, // Ora del log
                         style = TextStyle(
                             color = Color(0xFFFF6600), // Testo arancione
-                            fontSize = 4.sp,
+                            fontSize = logsize,
                             fontFamily = alata,
                             shadow = Shadow(
                                 color = Color.Black,
@@ -97,7 +99,7 @@ fun LogColumn(
                         .align(Alignment.CenterVertically),
                     style = TextStyle(
                         color = Color.Cyan,
-                        fontSize = 4.sp,
+                        fontSize = logsize,
                         fontFamily = FontFamily.Monospace, // Imposta font monospace
                         shadow = Shadow(
                             color = Color.Black,
@@ -126,7 +128,7 @@ fun LogColumn(
                         ),
                     style = TextStyle(
                         color = logMessages[index].type.color, // Colore del testo
-                        fontSize = 4.sp,
+                        fontSize = logsize,
                         fontFamily = FontFamily.Monospace, // Imposta font monospace
 //                            lineHeight = 4.sp,
                         shadow = Shadow(
