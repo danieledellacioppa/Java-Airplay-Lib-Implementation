@@ -1,0 +1,97 @@
+  {\color{teal!90}\chapter{JUnit4 Test Plan}\label{cap:junit4-test-plan}}
+
+  \AddToShipoutPictureBG*{%
+    \AtPageUpperLeft{%
+      \raisebox{-\height}{%
+        \includegraphics[width=\paperwidth]{./chapters/jUnit4_testing.jpeg}%
+      }%
+    }
+  }
+
+  \minitoc% Creating an actual minitoc mini lista contenuti
+
+  \section{JUnit4 Test Plan}
+
+  The most important test we need to plan is the Kiosk Test. In figure \ref{fig:kiosk-test-idea}, we show the idea of the test. The test will be performed on a Kiosk, and we will test the following:
+
+  \section{Kiosk Mode Test Description}
+
+  This test in JUnit4 needs to check the behavior of the \gls{ifp} Android device in Kiosk Mode (LockTask). The test objectives are as follows:
+
+  \begin{enumerate}
+    \item Verify that when the device is in LockTask mode, only the apps allowed to run in Kiosk Mode can be launched.
+    \item Ensure that attempts to launch apps not allowed in LockTask mode result in the expected failure and the Debug Console displays the message "APP NOT ALLOWED".
+    \item Check that if the device is not in Kiosk Mode, all apps should be able to launch without restriction.
+  \end{enumerate}
+
+  \subsection{Test Setup}
+
+  \begin{itemize}
+    \item \textbf{Device Configuration:} The device should be configured with Kiosk Mode settings stored in sharedPreferences.
+    \item \textbf{Allowed Apps:} A predefined list of apps that are permitted to run in Kiosk Mode.
+    \item \textbf{Disallowed Apps:} A predefined list of apps that are not permitted to run in Kiosk Mode.
+    \item \textbf{JUnit4 Framework:} The testing framework to be used for executing the tests.
+  \end{itemize}
+
+  \subsection{Test Steps}
+
+  \begin{enumerate}
+    \item Retrieve the Kiosk Mode status from sharedPreferences.
+    \item If Kiosk Mode is enabled:
+    \begin{enumerate}
+      \item Retrieve the list of allowed apps.
+      \item Attempt to launch each allowed app and verify it successfully launches.
+      \item Attempt to launch each disallowed app and verify it fails to launch, and the Debug Console displays "APP NOT ALLOWED".
+    \end{enumerate}
+    \item If Kiosk Mode is not enabled:
+    \begin{enumerate}
+      \item Attempt to launch all apps and verify they successfully launch.
+    \end{enumerate}
+  \end{enumerate}
+
+  \subsection{Test Cases}
+
+  \textbf{Test Case 1: Verify Allowed Apps Launch in Kiosk Mode}
+
+  \begin{itemize}
+    \item \textbf{Preconditions:} Device is in Kiosk Mode. The list of allowed apps is correctly set.
+    \item \textbf{Steps:}
+    \begin{enumerate}
+      \item Retrieve the list of allowed apps.
+      \item For each app in the list, attempt to launch the app.
+    \end{enumerate}
+    \item \textbf{Expected Result:} Each app in the allowed list should launch successfully.
+  \end{itemize}
+
+  \textbf{Test Case 2: Verify Disallowed Apps Do Not Launch in Kiosk Mode}
+
+  \begin{itemize}
+    \item \textbf{Preconditions:} Device is in Kiosk Mode. The list of disallowed apps is correctly set.
+    \item \textbf{Steps:}
+    \begin{enumerate}
+      \item Retrieve the list of disallowed apps.
+      \item For each app in the list, attempt to launch the app.
+    \end{enumerate}
+    \item \textbf{Expected Result:} Each app in the disallowed list should fail to launch, and the Debug Console should display "APP NOT ALLOWED".
+  \end{itemize}
+
+  \textbf{Test Case 3: Verify All Apps Launch When Kiosk Mode is Disabled}
+
+  \begin{itemize}
+    \item \textbf{Preconditions:} Device is not in Kiosk Mode.
+    \item \textbf{Steps:}
+    \begin{enumerate}
+      \item Attempt to launch all apps.
+    \end{enumerate}
+    \item \textbf{Expected Result:} All apps should launch successfully.
+  \end{itemize}
+
+  \clearpage
+  \section{The Idea}
+
+  This JUnit4 test plan outlines the steps and conditions necessary to verify the correct behavior of the \gls{ifp} Android device in Kiosk Mode. By ensuring that only allowed apps can run in LockTask mode and that the appropriate messages are displayed for disallowed apps, we can validate the robustness and reliability of the Kiosk Mode implementation.
+  \wrapfill
+
+  \roundedwrap{19}{R}{0cm}{10cm}{./chapters/kioskTest_idea.png}{-10pt}{Kiosk Test Idea}{fig:kiosk-test-idea}{Black}
+
+  This is likely to be the most critical test for the \gls{ifp} Android device, as it will be used in a public setting where only specific apps should be accessible to users. By rigorously testing the Kiosk Mode functionality, we can ensure that the device meets the security and usability requirements of the intended deployment environment.

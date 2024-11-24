@@ -1,0 +1,7 @@
+\babel@toc {english}{}\relax 
+\contentsline {part}{I\hspace {1em}DOCUMENTATION}{1}{part.1}%
+\contentsline {chapter}{\numberline {1}Bonjour}{3}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Bonjour and Device Discovery}{3}{section.1.1}%
+\contentsline {xpart}{DOCUMENTATION}{3}{part.1}%
+\contentsline {part}{II\hspace {1em}APPENDICES}{5}{part.2}%
+\contentsline {xpart}{APPENDICES}{7}{part.2}%

@@ -95,10 +95,12 @@ fun LogScaffoldContent(
             // Applica la trasformazione per espandere gli spazi nel logo ASCII
 
             val expandedLogoSP = 4
-            val expandedAppleSP = 2
+            val expandedAppleSP = 4
 
             val expandedLogoAscii = remember { expandSpaces(logoAscii, expandedLogoSP) }
             val expandedAppleAscii = remember { expandSpaces(appleAscii, expandedAppleSP) }
+
+            val generalTextSize = 16.sp
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -115,7 +117,7 @@ fun LogScaffoldContent(
                         Text(
                             text = "AirPlay Receiver",
                             style = TextStyle(
-                                fontSize = 10.sp,
+                                fontSize = generalTextSize,
                                 color = Color.White.copy(alpha = 0.7f),
                                 fontFamily = minecraftFont
                             )
@@ -127,7 +129,7 @@ fun LogScaffoldContent(
                             Text(
                                 text = "Beta Test v",
                                 style = TextStyle(
-                                    fontSize = 10.sp,
+                                    fontSize = generalTextSize,
                                     color = Color.White.copy(alpha = 0.9f),
                                     fontFamily = minecraftFont
                                 )
@@ -135,7 +137,7 @@ fun LogScaffoldContent(
                             Text(
                                 text = versionName,
                                 style = TextStyle(
-                                    fontSize = 10.sp,
+                                    fontSize = generalTextSize,
                                     color = Color.Black.copy(alpha = 0.8f),
                                     fontFamily = minecraftFont
                                 )
@@ -150,7 +152,7 @@ fun LogScaffoldContent(
                         )
                         Text(
                             text = expandedAppleAscii,
-                            style = TextStyle(fontSize = 1.sp, color = Color.White),
+                            style = TextStyle(fontSize = 2.sp, color = Color.Yellow),
                             modifier = Modifier.align(Alignment.BottomCenter)
                         )
 
@@ -170,7 +172,7 @@ fun LogScaffoldContent(
                         Text(
                             text = displayText,
                             style = TextStyle(
-                                fontSize = 10.sp,
+                                fontSize = generalTextSize,
                                 color = Color.White.copy(alpha = 0.7f),
                                 fontFamily = minecraftFont
                             )
@@ -178,7 +180,7 @@ fun LogScaffoldContent(
                         Text(
                             text = nameOnNetwork,
                             style = TextStyle(
-                                fontSize = 10.sp,
+                                fontSize = generalTextSize,
                                 color = nameTextColor,
                                 fontFamily = minecraftFont
                             )

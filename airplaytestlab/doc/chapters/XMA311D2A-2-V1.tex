@@ -1,0 +1,116 @@
+{\color{teal!90}\chapter{XMA311D2A-2-V1 Firmware Structure}\label{cap:xma311d2a-2-v1}}
+
+\AddToShipoutPictureBG*{%
+  \AtPageUpperLeft{%
+    \raisebox{-\height}{%
+      \includegraphics[width=\paperwidth]{./chapters/XMG6780A-V2.png}%
+    }%
+  }
+}
+
+\minitoc% Creating an actual minitoc mini lista contenuti
+
+
+\section{XMA311D2A-2-V1 Firmware}
+At page n. \pageref{tab:xma311d2a-2-v1-binwalk} we show the \gls{binarywalk} of the XMA311D2A-2-V1 firmware. The firmware is a 3.6 GB file.
+It's probably an archive file, but we can't be sure. Many info will be useful in case we want to
+flash our own OS.
+
+% small text from now on
+\scriptsize
+\begin{landscape}
+\input{./chapters/imagewalktable.tex}
+\end{landscape}
+\normalsize
+
+\section{Some system properties}
+%\input{./getproperties/getProperties/getprop.tex}
+
+\clearpage
+\section{Creating a custom firmware}
+In Table \ref{tab:cpuinfo} it is shown the output of the command {\color{BrickRed}\texttt{adb shell cat /proc/cpuinfo}} which obtains the details of the CPU cores.
+To gather additional system information I'm using the command {\color{BrickRed}\texttt{adb shell getprop}} (see Listing \ref{lst:adbshellgetprop}), thus obtaining further mission critical system details:
+
+\lstinputlisting[language=bash,linewidth=0.8\linewidth,caption={adb shell getprop}, label=lst:adbshellgetprop, escapechar=\%]{./chapters/code/critical_sys_info.txt}
+
+\subsubsection{Significance of \texttt{ro.board.platform} = \texttt{t7} for Custom Firmware Development}
+
+The value \texttt{ro.board.platform} indicating \texttt{t7} provides critical information regarding the specific \gls{SoC} or hardware platform that the device is based on. Understanding this value is essential as it directly impacts the development and customization of the firmware.
+
+\paragraph{Identification of the SoC}
+The \texttt{t7} value typically corresponds to a particular \gls{SoC} model used in the device. This identifier is crucial because it defines the hardware characteristics, such as the type of CPU, GPU, memory controllers, and other integrated components. Knowing that the device is built on the \texttt{t7} platform allows us to search for specific documentation, drivers, and resources in the Linux kernel or Android Open Source Project (AOSP) that are compatible with this platform.
+
+\paragraph{Kernel and Driver Compatibility}
+The \texttt{t7} platform requires a kernel that fully supports all features of the \gls{SoC}. This means the kernel must include the necessary drivers for the processor, GPU, memory controller, and other critical components. During the development of the custom firmware, it will be necessary to ensure that the selected or modified kernel is optimized for the \texttt{t7} platform. Failure to do so may result in hardware features not functioning correctly or at all.
+
+\paragraph{ARM Architecture Support}
+Given that the \texttt{t7} platform is associated with a 64-bit ARM architecture (\texttt{arm64-v8a}), it is imperative to ensure that the firmware is built with support for ARMv8-A. This includes extensions such as NEON for SIMD (Single Instruction, Multiple Data) processing and other architecture-specific optimizations. The firmware will also need to manage compatibility with 32-bit applications (\texttt{armeabi-v7a} and \texttt{armeabi}), which may still be in use, especially in legacy environments.
+
+\paragraph{Customization and Optimization}
+Knowing that the platform is \texttt{t7} allows us to make platform-specific optimizations, such as power management, memory allocation, and thermal performance, which are crucial for embedded devices or low-power systems. Customizing the firmware for \texttt{t7} may involve integrating specific software or middleware that takes advantage of the unique hardware capabilities of the platform, thereby enhancing overall efficiency and performance.
+
+\paragraph{Research and Community Support}
+Since the device utilizes the \texttt{t7} platform, we can explore online communities, open-source code repositories, and documentation specific to this platform, making problem-solving and resource gathering more efficient. If \texttt{t7} is a common platform, there may already be existing work on custom firmware or optimized kernels that can serve as a foundation for our project.
+
+\subparagraph{Next Steps}
+\begin{enumerate}
+  \item **Documentation and Research**: Begin by thoroughly researching \texttt{t7}, seeking technical specifications, \gls{SoC} documentation, and any available resources through forums or open-source project repositories.
+  \item **Kernel Selection**: Base the custom firmware's kernel on a version that fully supports the \texttt{t7} platform, applying any necessary patches or modifications to ensure optimal device support.
+  \item **Development and Testing**: During firmware development, rigorous testing is crucial to ensure that all hardware components supported by the \texttt{t7} platform function as expected, including support for both 32-bit and 64-bit applications.
+\end{enumerate}
+
+This approach will ensure that the custom firmware is perfectly adapted to the specific hardware platform of the device, maximizing system performance and stability.
+
+
+%\clearpage
+\begin{table}
+  \centering
+  \scriptsize
+  \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    \textbf{Processor} & \textbf{BogoMIPS} & \textbf{Features} & \textbf{CPU Implementer} & \textbf{CPU Architecture} & \textbf{CPU Variant} & \textbf{CPU Part} & \textbf{CPU Revision} \\ \hline
+    0 & 48.00 & fp, asimd, evtstrm, aes, pmull, sha1, sha2, crc32, cpuid & 0x41 & 8 & 0x0 & 0xd09 & 2 \\ \hline
+    1 & 48.00 & fp, asimd, evtstrm, aes, pmull, sha1, sha2, crc32, cpuid & 0x41 & 8 & 0x0 & 0xd09 & 2 \\ \hline
+    2 & 48.00 & fp, asimd, evtstrm, aes, pmull, sha1, sha2, crc32, cpuid & 0x41 & 8 & 0x0 & 0xd09 & 2 \\ \hline
+    3 & 48.00 & fp, asimd, evtstrm, aes, pmull, sha1, sha2, crc32, cpuid & 0x41 & 8 & 0x0 & 0xd09 & 2 \\ \hline
+    4 & 48.00 & fp, asimd, evtstrm, aes, pmull, sha1, sha2, crc32, cpuid & 0x41 & 8 & 0x0 & 0xd03 & 4 \\ \hline
+    5 & 48.00 & fp, asimd, evtstrm, aes, pmull, sha1, sha2, crc32, cpuid & 0x41 & 8 & 0x0 & 0xd03 & 4 \\ \hline
+    6 & 48.00 & fp, asimd, evtstrm, aes, pmull, sha1, sha2, crc32, cpuid & 0x41 & 8 & 0x0 & 0xd03 & 4 \\ \hline
+    7 & 48.00 & fp, asimd, evtstrm, aes, pmull, sha1, sha2, crc32, cpuid & 0x41 & 8 & 0x0 & 0xd03 & 4 \\ \hline
+  \end{tabular}
+  \caption{Details of the CPU cores obtained from \texttt{adb shell cat /proc/cpuinfo}.}
+  \label{tab:cpuinfo}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{fp}: Floating Point Unit, responsible for handling arithmetic operations on floating-point numbers, crucial for scientific calculations and multimedia processing.
+  \item \textbf{asimd}: Advanced SIMD (Single Instruction, Multiple Data), also known as NEON, enables parallel processing, essential for tasks like signal processing and multimedia encoding.
+  \item \textbf{evtstrm}: Event Stream, allows the processor to efficiently handle sequences of operations or events, used in real-time processing applications.
+  \item \textbf{aes}: Advanced Encryption Standard, a widely used symmetric encryption algorithm for securing data, recognized for its efficiency in both hardware and software.
+  \item \textbf{pmull}: Polynomial Multiply, an instruction that accelerates polynomial arithmetic, useful in cryptographic applications like Galois/Counter Mode (GCM).
+  \item \textbf{sha1}: Secure Hash Algorithm 1, produces a 160-bit hash value, used for data integrity verification and digital signatures.
+  \item \textbf{sha2}: Secure Hash Algorithm 2, a family of cryptographic hash functions producing 224, 256, 384, or 512-bit hash values, used in security protocols like SSL/TLS.
+  \item \textbf{crc32}: Cyclic Redundancy Check 32-bit, an error-detecting code used to check data integrity, widely implemented in network communications and file storage systems.
+  \item \textbf{cpuid}: CPU IDentification, an instruction that provides details about the processor's type, capabilities, and features, essential for optimizing software.
+  \item \textbf{0x41}: Hexadecimal value identifying the CPU implementer, which corresponds to ARM Ltd., the designer of the ARM architecture.
+  \item \textbf{CPU Architecture}: Refers to the processor's underlying design, where '8' indicates ARMv8-A, a 64-bit architecture used in modern devices.
+  \item \textbf{CPU Variant}: A specific version or model of the CPU core within a broader architecture family, indicating different iterations with possible feature variations.
+  \item \textbf{CPU Part}: A unique identifier for a specific CPU core, such as 0xd09 for Cortex-A53 and 0xd03 for Cortex-A55, distinguishing cores with different performance characteristics.
+  \item \textbf{CPU Revision}: The revision number of the CPU core, indicating specific version updates that may include bug fixes or performance enhancements.
+\end{itemize}
+
+\section{Outcome and Next Steps}
+As of 14 Aug 2024, we have successfully determined the CPU architecture and key features of the XMA311D2A-2-V1 device. These details confirm that the device is built on the ARMv8-A architecture, specifically utilizing Cortex-A53 and Cortex-A55 cores.
+
+\subsection{Next Steps}
+Based on this information, our immediate next steps will include:
+
+\begin{enumerate}
+  \item \textbf{Identifying a Compatible AOSP Version}: We'll begin by locating a version of the Android Open Source Project (AOSP) that is compatible with ARMv8-A architecture and supports the specific features of the Cortex-A53 and Cortex-A55 cores.
+  \item \textbf{Custom Kernel Development}: Given the specifics of the hardware, we will explore the kernel sources provided by ARM and potentially modify them to suit the custom needs of our firmware, ensuring support for all critical features like AES encryption and advanced SIMD operations.
+  \item \textbf{Cross-Compiling the Firmware}: Once we have a compatible version of AOSP, we will proceed with cross-compiling the custom firmware. This will involve integrating necessary drivers and ensuring compatibility with the device's hardware.
+  \item \textbf{Testing and Validation}: After compiling the custom firmware, we will perform rigorous testing on a single device to validate the stability and functionality of the firmware before rolling it out across all 70 screens.
+  \item \textbf{Documentation and Process Refinement}: We will document the entire process and refine our approach based on the outcomes of the testing phase, ensuring that we have a robust method for future firmware updates or custom builds.
+\end{enumerate}
+
+By following these steps, we aim to develop a stable and reliable custom firmware that fully leverages the hardware capabilities of the XMA311D2A-2-V1, while also laying the groundwork for future enhancements and updates.
