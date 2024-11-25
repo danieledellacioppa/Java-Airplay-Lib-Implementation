@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.10.8)  25 NOV 2024 01:05
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.10.8)  25 NOV 2024 19:34
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1644,7 +1644,7 @@ Package csquotes Info: Redefining alias 'default' -> 'english'.
 LaTeX Warning: Unused global option(s):
     [14.50pt].
 
-(./AirPlay.aux (./chapters/SettingUp.aux))
+(./AirPlay.aux (./chapters/SettingUp.aux) (./chapters/AirPlayServer.aux))
 \openout1 = `AirPlay.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 856.
@@ -1821,6 +1821,10 @@ Package minitoc Info: I0033
 (minitoc)             Writing AirPlay.mtc1.
 \openout8 = `AirPlay.mtc1'.
 
+Package minitoc Info: I0033
+(minitoc)             Writing AirPlay.mtc2.
+\openout8 = `AirPlay.mtc2'.
+
  (./AirPlay.toc)
 \tf@toc=\write10
 \openout10 = `AirPlay.toc'.
@@ -1871,13 +1875,45 @@ File: ./chapters/bonjour.jpg Graphic file (type bmp)
  [3
 
 
-] [4
+]
+\openout2 = `chapters/AirPlayServer.aux'.
+
+ (./chapters/AirPlayServer.tex [4
 
 
 
-] [5] [6]
+
+]
+Chapter 2.
+
+Underfull \hbox (badness 10000) in paragraph at lines 1--1
+ [][][][][]
+ []
+
+
+Underfull \hbox (badness 1968) in paragraph at lines 1--1
+[][] 
+ []
+
+
+Overfull \hbox (21.96944pt too wide) in paragraph at lines 1--1
+[][][]  
+ []
+
+\openout8 = `AirPlay.mtc'.
+
+\openout8 = `AirPlay.mtc'.
+
+(./AirPlay.mtc2)
+File: ./chapters/classroom.jpg Graphic file (type bmp)
+<./chapters/classroom.jpg>
+ [5]) [6] [7
+
+
+
+] [8]
 No file AirPlay.gls.
-[7] [8
+[9] [10
 
 ]
 runsystem(makeindex AirPlay.idx)...executed safely (allowed).
@@ -1897,21 +1933,21 @@ Package minitoc(hints) Warning: W0024
 (minitoc(hints))                Some hints have been written 
 (minitoc(hints))                in the AirPlay.log file.
 
-(./AirPlay.aux (./chapters/SettingUp.aux))
+(./AirPlay.aux (./chapters/SettingUp.aux) (./chapters/AirPlayServer.aux))
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
 Package rerunfilecheck Info: File `AirPlay.out' has not changed.
-(rerunfilecheck)             Checksum: 50EC18ACD19B21FA1CF212CC03021301;515.
+(rerunfilecheck)             Checksum: AFB8D169AD29E951C9D05766AB1A8128;1058.
  ) 
 Here is how much of TeX's memory you used:
- 49362 strings out of 474773
- 1023575 string characters out of 5757724
- 1931839 words of memory out of 5000000
- 70668 multiletter control sequences out of 15000+600000
+ 49492 strings out of 474773
+ 1026702 string characters out of 5757724
+ 1933839 words of memory out of 5000000
+ 70787 multiletter control sequences out of 15000+600000
  566748 words of font info for 97 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  109i,11n,125p,2341b,870s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on AirPlay.pdf (10 pages).
+Output written on AirPlay.pdf (12 pages).

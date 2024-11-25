@@ -3,5 +3,8 @@
 \contentsline {chapter}{\numberline {1}Bonjour}{3}{chapter.1}%
 \contentsline {section}{\numberline {1.1}Bonjour and Device Discovery}{3}{section.1.1}%
 \contentsline {xpart}{DOCUMENTATION}{3}{part.1}%
-\contentsline {part}{II\hspace {1em}APPENDICES}{5}{part.2}%
-\contentsline {xpart}{APPENDICES}{7}{part.2}%
+\contentsline {chapter}{\numberline {2}AirPlay Server}{5}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Overview of the AirPlay Server}{5}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Initialization and Parameters}{5}{section.2.2}%
+\contentsline {part}{II\hspace {1em}APPENDICES}{7}{part.2}%
+\contentsline {xpart}{APPENDICES}{9}{part.2}%
