@@ -1,5 +1,6 @@
 package com.akhter.airplaytestlab
 
+import com.akhter.airplaytestlab.tools.LogRepository
 import java.net.InetAddress
 import javax.jmdns.JmDNS
 import javax.jmdns.ServiceInfo
@@ -20,6 +21,7 @@ class AirPlayBonjour(nameOnNetwork: String) {
             val localIp = getLocalIpAddress()
             if (localIp != null) {
                 jmDNS = JmDNS.create(InetAddress.getByName(localIp))
+                LogRepository.addLog("AirPlayBonjour", "Starting AirPlayBonjour on $localIp")
 
                 // Configura i dettagli del servizio
                 val serverName = nameOnNetwork // Nome del servizio
@@ -44,7 +46,9 @@ class AirPlayBonjour(nameOnNetwork: String) {
                     0,
                     airPlayMDNSProps()
                 )
+                LogRepository.addLog("AirPlayBonjour", "Starting AirPlay service on port $airPlayPort")
                 jmDNS?.registerService(airPlayService)
+                LogRepository.addLog("AirPlayBonjour", "AirPlay service started")
 
             }
         } catch (e: Exception) {
