@@ -1,17 +1,19 @@
 package com.akhter.airplaytestlab
 
 import android.os.Bundle
+import android.util.Log
 import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.toArgb
-import com.akhter.airplaytestlab.aplib.AirPlayBonjour
 import com.akhter.airplaytestlab.aplib.rtsp.AudioStreamInfo
 import com.akhter.airplaytestlab.aplib.rtsp.VideoStreamInfo
 import com.akhter.airplaytestlab.apserver.AirPlayServer
 import com.akhter.airplaytestlab.apserver.AirplayDataConsumer
 import com.akhter.airplaytestlab.compose.VideoDisplayComposable
+import com.akhter.airplaytestlab.model.NALPacket
+import com.akhter.airplaytestlab.player.VideoPlayer
 import com.akhter.airplaytestlab.tools.LogRepository
 import com.akhter.airplaytestlab.tools.LogRepository.isConnectionActive
 import com.akhter.airplaytestlab.ui.theme.BioAuthenticatorTheme
@@ -21,12 +23,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.LinkedList
 
 class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
 
     private val _serverState = MutableStateFlow(ServerState.STOPPED)
     val serverState: StateFlow<ServerState> get() = _serverState
+
+    private var mVideoPlayer: VideoPlayer? = null
+    private val mVideoCacheList = LinkedList<NALPacket>()
+
 
     private var showLog = MutableStateFlow(true)
 
@@ -35,6 +42,8 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
 //    private val airPlayBonjour = AirPlayBonjour(nameOnNetwork)
     private lateinit var airPlayServer: AirPlayServer
+
+    private val TAG = "MainActivity"
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,18 +80,39 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private val airplayDataConsumer = object : AirplayDataConsumer {
 
         override fun onVideo(video: ByteArray?) {
-            TODO("Not yet implemented")
+            // Imposta lo stato della connessione attiva quando i primi pacchetti video sono ricevuti
+            if (!isConnectionActive) {
+                isConnectionActive = true
+                Log.d(TAG, "Connection active: received first video packet.")
+                LogRepository.addLog(TAG, "Connection active: received first video packet.")
+            }
+
+            val nalPacket = NALPacket().apply {
+                nalData = video
+            }
+
+            if (mVideoPlayer != null) {
+                while (mVideoCacheList.isNotEmpty()) {
+                    mVideoPlayer?.addPacket(mVideoCacheList.removeFirst())
+                }
+                mVideoPlayer?.addPacket(nalPacket)
+            } else {
+                mVideoCacheList.add(nalPacket)
+            }
         }
 
         override fun onVideoFormat(videoStreamInfo: VideoStreamInfo?) {
-            TODO("Not yet implemented")
+            LogRepository.addLog(TAG, "Video format received.")
+            TODO ("Not yet implemented")
         }
 
         override fun onAudio(audio: ByteArray?) {
+            LogRepository.addLog(TAG, "Audio received.")
             TODO("Not yet implemented")
         }
 
         override fun onAudioFormat(audioInfo: AudioStreamInfo?) {
+            LogRepository.addLog(TAG, "Audio format received.")
             TODO("Not yet implemented")
         }
     }
@@ -96,15 +126,26 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
+        LogRepository.addLog(TAG, "Surface created.")
         TODO("Not yet implemented")
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        TODO("Not yet implemented")
+        if (mVideoPlayer == null) {
+            LogRepository.addLog(TAG, "surfaceChanged: width:$width --- height:$height")
+            mVideoPlayer = VideoPlayer(holder.surface).apply {
+                start()
+            }
+        }
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        TODO("Not yet implemented")
+        LogRepository.addLog(TAG, "Surface destroyed.")
+         // Rilascia tutte le risorse legate al VideoPlayer
+        if (mVideoPlayer != null) {
+            mVideoPlayer?.release()  // Usa il nuovo metodo release per pulire le risorse
+            mVideoPlayer = null  // Imposta a null il riferimento per indicare che non c'è un VideoPlayer attivo
+        }
     }
 
     private fun toggleServer() {

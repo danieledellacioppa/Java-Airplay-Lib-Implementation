@@ -1,6 +1,7 @@
 package com.akhter.airplaytestlab.apserver
 
 import com.akhter.airplaytestlab.aplib.AirPlayBonjour
+import com.akhter.airplaytestlab.apserver.internal.ControlServer
 import com.akhter.airplaytestlab.tools.LogRepository
 
 class AirPlayServer(
@@ -11,7 +12,7 @@ class AirPlayServer(
 ) {
     private val airPlayBonjour = AirPlayBonjour(serverName)
 //    private val controlServer = ControlServer(airPlayPort, airTunesPort, airplayDataConsumer)
-//    private var controlServerThread: Thread? = null
+    private var controlServerThread: Thread? = null
     private val TAG = "AirPlayServer"
     val serverName = serverName
     val airPlayPort = airPlayPort
@@ -34,7 +35,6 @@ class AirPlayServer(
 //            controlServer.stop()
 //            try {
 //                thread.join() // Attende la terminazione
-//                Log.d(TAG, "ControlServer stopped")
 //                LogRepository.addLog(TAG, "ControlServer stopped", 'W')
 //            } catch (e: InterruptedException) {
 //                Thread.currentThread().interrupt() // Gestisce l'interruzione
