@@ -22,11 +22,13 @@
       \node[draw, rounded corners, text centered, text width=3cm, below of=airplayserver, fill=green!20] (bonjour) {AirPlayBonjour};
       \node[draw, dashed, rounded corners, text centered, text width=3cm, right of=airplayserver, xshift=4cm, fill=red!20] (controlserver) {ControlServer};
       \node[draw, dashed, rounded corners, text centered, text width=3cm, below of=controlserver, fill=orange!20] (controlthread) {ControlServerThread};
+      \node[draw, thick, rounded corners, text centered, text width=3.5cm, above of=airplayserver, fill=yellow!20] (mainactivity) {MainActivity};
 
       % Connections
       \draw[->] (airplayserver) -- node[midway, right] {start/stop} (bonjour);
       \draw[->, dashed] (airplayserver) -- node[midway, above] {future implementation} (controlserver);
       \draw[->, dashed] (controlserver) -- node[midway, right] {uses} (controlthread);
+      \draw[->, thick] (mainactivity) -- node[midway, left] {uses} (airplayserver);
 
       % Annotations
       \node[below of=bonjour, yshift=-0.5cm, text width=3cm, align=center] (note1)
