@@ -33,7 +33,6 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        enableEdgeToEdge()
         LogRepository.addLog("MainActivity", "onCreate")
         window.navigationBarColor = Gray40.toArgb()
         setContent {
@@ -56,7 +55,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
             }
         }
         CoroutineScope(Dispatchers.IO).launch {
-            airPlayBonjour.startBonjourService()
+            airPlayBonjour.start()
         }
     }
 
@@ -64,7 +63,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onDestroy() {
         super.onDestroy()
-        airPlayBonjour.stopBonjourService()
+        airPlayBonjour.stop()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
