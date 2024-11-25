@@ -1,4 +1,4 @@
-package com.akhter.airplaytestlab
+package com.akhter.airplaytestlab.aplib
 
 import com.akhter.airplaytestlab.tools.LogRepository
 import java.net.InetAddress

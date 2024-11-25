@@ -6,6 +6,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.toArgb
+import com.akhter.airplaytestlab.aplib.AirPlayBonjour
+import com.akhter.airplaytestlab.aplib.rtsp.AudioStreamInfo
+import com.akhter.airplaytestlab.aplib.rtsp.VideoStreamInfo
+import com.akhter.airplaytestlab.apserver.AirPlayServer
+import com.akhter.airplaytestlab.apserver.AirplayDataConsumer
 import com.akhter.airplaytestlab.compose.VideoDisplayComposable
 import com.akhter.airplaytestlab.tools.LogRepository
 import com.akhter.airplaytestlab.tools.LogRepository.isConnectionActive
@@ -23,12 +28,13 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private val _serverState = MutableStateFlow(ServerState.STOPPED)
     val serverState: StateFlow<ServerState> get() = _serverState
 
-    private var showLog = MutableStateFlow(false)
+    private var showLog = MutableStateFlow(true)
 
     private val versionName = "1.0.0"
     private val nameOnNetwork = "Airplay Test Lab"
 
-    private val airPlayBonjour = AirPlayBonjour(nameOnNetwork)
+//    private val airPlayBonjour = AirPlayBonjour(nameOnNetwork)
+    private lateinit var airPlayServer: AirPlayServer
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +61,29 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
             }
         }
         CoroutineScope(Dispatchers.IO).launch {
-            airPlayBonjour.start()
+//            airPlayBonjour.start()
+            airPlayServer = AirPlayServer(nameOnNetwork, 7000, 49152, airplayDataConsumer)
+            airPlayServer.start()
+        }
+    }
+
+
+    private val airplayDataConsumer = object : AirplayDataConsumer {
+
+        override fun onVideo(video: ByteArray?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onVideoFormat(videoStreamInfo: VideoStreamInfo?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onAudio(audio: ByteArray?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onAudioFormat(audioInfo: AudioStreamInfo?) {
+            TODO("Not yet implemented")
         }
     }
 
@@ -63,7 +91,8 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onDestroy() {
         super.onDestroy()
-        airPlayBonjour.stop()
+//        airPlayBonjour.stop()
+        airPlayServer.stop()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
