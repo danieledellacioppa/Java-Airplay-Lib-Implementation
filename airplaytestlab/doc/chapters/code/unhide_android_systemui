@@ -1,0 +1,2 @@
+[daniele@daniele-manjaro TaishanTweaker]$ adb -s \taishanIP shell pm unhide cn.android.systemui
+Package cn.android.systemui new hidden state: true%\label{systemui_out}%

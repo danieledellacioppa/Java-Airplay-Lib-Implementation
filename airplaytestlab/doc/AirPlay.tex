@@ -1,0 +1,942 @@
+\documentclass[a4paper,14.50pt]{book} \usepackage{color} \usepackage[usenames,dvipsnames,svgnames,table,x11names]{xcolor}
+\usepackage{listings}
+\usepackage[T1]{fontenc}
+\usepackage{imakeidx}
+\usepackage{graphicx}
+\makeindex[columns=3, title=Alphabetical Index, intoc]
+\usepackage{graphicx,wrapfig,lipsum}
+
+\usepackage[hmargin=1cm, vmargin=3cm]{geometry}
+\usepackage[font=tiny, labelfont=sc]{caption}
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{shadowtext}
+\usepackage{pdflscape}
+
+
+%\usepackage{refcount}
+
+%qualsiasi font size col numerino
+\usepackage{anyfontsize}
+
+%hyperlinks, coloured menu, submenu with different colors, clickable references
+\hypersetup{
+     colorlinks=true,
+     citecolor=gray,
+     urlcolor=gray,
+     linkcolor=DeepSkyBlue3,
+%     allcolors=gray
+}
+
+\usepackage{tocloft}
+
+\renewcommand{\cftpartfont}{\Large\bfseries\hypersetup{linkcolor=DeepSkyBlue4}}
+\renewcommand{\cftsecfont}{\hypersetup{linkcolor=DarkSeaGreen4}}
+\renewcommand{\cftsubsecfont}{\normalfont\hypersetup{linkcolor=LightCyan4}}
+\renewcommand{\cftsubsecafterpnum}{\hypersetup{linkcolor=green}}
+
+\newcommand{\wrapfill}{\par\ifnum\value{WF@wrappedlines}>0
+  \addtocounter{WF@wrappedlines}{-1}%
+  \null\vspace{\arabic{WF@wrappedlines}\baselineskip}%
+  \WFclear
+\fi}
+
+
+\author{
+  Daniele, Della Cioppa\\
+  \texttt{daniele.dellacioppa@gmail.com}
+}
+\title{Usage of the \texttt{\textbackslash author} command}
+
+\renewcommand{\footnotesize}{\scriptsize}
+
+
+%for chinese characters - not working yet
+%this package is not found
+%\usepackage{CJKutf8}
+ 
+\usepackage[utf8]{inputenc} % optional
+\usepackage[T1]{fontenc}
+
+
+% for underlining
+%\usepackage{ulem}
+
+
+%\usepackage{fontspec}
+
+%\newfontfamily{\cfont}{Microsoft YaHei}
+
+
+%nome del capitolo ad ogni pagina 
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\fancyhf{}
+\fancyhead[RO,LE]{\textbf{\thepage}}
+\fancyhead[LO]{\nouppercase{\textbf{\color{teal}\leftmark}}}
+\fancyhead[RE]{\nouppercase{\textbf{\color{cyan}\rightmark}}}
+
+%possibility to add chapters
+
+\usepackage[english]{babel}
+
+%background image to parts
+\usepackage{eso-pic}
+
+\usepackage{sectsty}    %package to define colors
+\definecolor{Bluetto}{rgb}{0.2,0.4,1} %defining color
+\definecolor{Bluettino}{rgb}{0.1,0.5,0.8} %defining color
+\definecolor{Bluettetto}{rgb}{0.1,0.4,0.4} %defining color
+
+\definecolor{LightBluetto}{rgb}{0.2,0.2,0.9}
+
+
+\chapterfont{\color{Bluetto}}   %using the defined color for chapter fonts
+\sectionfont{\color{Bluettetto}}  %defining section color
+\subsectionfont{\color{Bluettino}} %defining subsection color
+\subsubsectionfont{\color{teal}} %defining subsection color
+\paragraphfont{\color{OliveGreen}} %defining paragraph color
+\subparagraphfont{\color{LimeGreen}} %defining subparagraph color
+
+
+% -- Defining colors:
+\usepackage[dvipsnames]{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\usepackage{caption}
+\DeclareCaptionFont{teal!80}{\color{teal!80}}
+%white che viene nel colorbox is a hack
+\DeclareCaptionFormat{figure}{\colorbox{white}{\parbox{\textwidth}{#1#2#3}}}
+%\captionsetup[lstlisting]{format=listing,labelfont=teal!80,textfont=teal!80}
+
+%provo a definire le mie lstlisting captions
+\DeclareCaptionFormat{listing}{\rule{\dimexpr\textwidth+17pt\relax}{0pt}\par\vskip1pt#1#2#3}
+\captionsetup[lstlisting]{format=listing,singlelinecheck=false, margin=0pt, font={sf},labelsep=space,labelfont=bf,textfont=teal!80}
+\captionsetup[figure]{format=default,singlelinecheck=true, margin=0pt, font={sf},labelsep=space,labelfont=bf,textfont=teal!80}
+
+
+
+\lstdefinestyle{mystyle}{
+    frame=lrb,
+%     belowcaptionskip=4pt,
+%     xleftmargin=8pt,
+%     framexleftmargin=8pt,
+%     framexrightmargin=5pt,
+%     framextopmargin=5pt,
+%     framexbottommargin=5pt,
+%     framesep=0pt,
+%     rulesep=0pt,
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codepurple},
+    keywordstyle=\color{NavyBlue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\tiny\bfseries,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=t,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+% -- Setting up the custom style:
+\lstset{
+  style=mystyle,
+%  framexleftmargin=3.5mm,
+  frame=shadowbox,
+  rulesepcolor=\color{Sepia},
+%  linewidth=0.6\linewidth,
+%  xleftmargin=12pt,
+%  aboveskip=12pt,
+%  belowskip=12pt
+}
+
+
+
+% provo a definire il mio xml language
+\definecolor{maroon}{rgb}{0.5,0,0}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\lstdefinelanguage{XML}
+{
+    morestring=[s]{"}{"},
+    morecomment=[s]{!--}{--},
+    commentstyle=\color{darkgreen},
+    moredelim=[s][\color{black}]{>}{<},
+    moredelim=[s][\color{red}]{\ }{=},
+    stringstyle=\color{blue},
+    identifierstyle=\color{maroon}
+}
+
+
+% provo a definire kotlin
+\lstdefinelanguage{Kotlin}{
+  comment=[l]{//},
+  commentstyle={\color{gray}\ttfamily},
+  emph={filter, first, firstOrNull, forEach, lazy, map, mapNotNull, println},
+  emphstyle={\color{OrangeRed}},
+  identifierstyle=\color{black},
+  keywords={!in, !is, abstract, actual, annotation, as, as?, break, by, catch, class, companion, const, constructor, continue, crossinline, data, delegate, do, dynamic, else, enum, expect, external, false, field, file, final, finally, for, fun, get, if, import, in, infix, init, inline, inner, interface, internal, is, lateinit, noinline, null, object, open, operator, out, override, package, param, private, property, protected, public, receiveris, reified, return, return@, sealed, set, setparam, super, suspend, tailrec, this, throw, true, try, typealias, typeof, val, var, vararg, when, where, while},
+  keywordstyle={\color{NavyBlue}\bfseries},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  morestring=[s]{"""*}{*"""},
+  ndkeywords={@Deprecated, @JvmField, @JvmName, @JvmOverloads, @JvmStatic, @JvmSynthetic, Array, Byte, Double, Float, Int, Integer, Iterable, Long, Runnable, Short, String, Any, Unit, Nothing},
+  ndkeywordstyle={\color{BurntOrange}\bfseries},
+  sensitive=true,
+  stringstyle={\color{ForestGreen}\ttfamily},
+}
+
+
+%quoting
+\usepackage{csquotes}
+
+%epigraph
+\usepackage{epigraph} 
+
+%fonts
+%\usepackage[T1]{fontenc}
+%\usepackage{accanthis}
+
+\usepackage{fontspec}
+%\renewcommand{\familydefault}{\rmdefault}
+\setmainfont{Times New Roman} % o una alternativa similar com TeX Gyre Termes
+%\setmainfont{MathJax_Fraktur} %per cose particuler
+
+
+%possible wrapfig function
+\newsavebox\curwrapfig
+\makeatletter
+\long\def\wrapfiguresafe#1#2#3{%
+  \sbox\curwrapfig{#3}%
+  \par\penalty-100%
+  \begingroup % preserve \dimen@
+    \dimen@\pagegoal \advance\dimen@-\pagetotal % space left
+    \advance\dimen@-\baselineskip % allow an extra line
+    \ifdim \ht\curwrapfig>\dimen@ % not enough space left
+      \break%
+    \fi%
+  \endgroup%
+  \begin{wrapfigure}{#1}{#2}%
+    \usebox\curwrapfig%
+  \end{wrapfigure}%
+}
+\makeatother
+
+\def\simplewrap#1#2#3#4#5#6#7#8{%
+\begin{wrapfigure}[#1]{#2}{#3}%
+\centering%
+\includegraphics[width=#4]{#5}%
+\vspace{#6}%
+\caption{#7}\label{#8}%
+\end{wrapfigure}%
+}
+
+% Define a custom command for wrapping figures with rounded corners and colored background
+\def\roundedwrap#1#2#3#4#5#6#7#8#9{%
+    \begin{wrapfigure}[#1]{#2}{#3}%
+        \centering%
+        \tikz \node[rounded corners=5pt, draw=DimGray, line width=0.5mm, fill=#9, inner sep=0] {\includegraphics[width=#4]{#5}};%
+        \vspace{#6}%
+        \caption{#7}\label{#8}%
+    \end{wrapfigure}%
+}
+
+\definecolor{tecnico}{rgb}{0.4,0,0.4} %defining color
+
+%#####funzione temporanea per riparare zone conflittuali
+\def\conflictparagraph#1#2{%
+\paragraph{\scalebox{#1}{#2}}\mbox{}\\
+}
+%#####fine funzione temporanea per riparare zone conflittuali
+
+\def\techdata#1{%
+\textbf{\color{tecnico}{\scalebox{1.3}{#1}}}
+}
+
+\definecolor{nometecnico}{rgb}{0,0.4,0.4} %defining color
+
+\def\techname#1{%
+\textbf{\color{nometecnico}{\scalebox{1.3}{#1}}}
+}
+
+\def\csquote#1{%
+\begin{quote} 
+\centering
+\highlight{BrickRed!75}{#1}
+\end{quote}
+}
+
+\def\freccetta#1{%
+⇝ \textit{#1}%
+}
+
+\def\ipnum#1{%
+\textbf{\scalebox{1.8}{\font\foo="Sketch Gothic School" \foo  #1}}%
+}
+
+\def\cmd#1{%
+\textbf{\scalebox{0.5}{\font\foo="Fipps" \foo  #1}}%
+}
+
+\def\android#1{%
+\textbf{\scalebox{1}{\font\foo="DejaVu Sans" \foo  #1}}%
+}
+
+\def\iniziocapitolo#1{%
+\textbf{\scalebox{3}{\font\foo="Acorn Initials" \foo  #1}}%
+}
+
+\def\citazioneItaliana#1{%
+\textbf{\scalebox{1.2}{\font\foo="Gracelya Script" \foo  #1}}%
+}
+
+\def\grazie#1{%
+\textbf{\scalebox{0.9}{\font\foo="Gracelya Script" \foo  #1}}%
+}
+
+\def\workplace#1{%
+\textbf{\font\foo="Glitten" \foo  #1}%
+}
+
+\def\desktopfile#1{%
+{\scalebox{0.7}{\font\foo="Skia" \foo  #1}}%
+}
+
+\def\suggerimento#1{%
+\textbf{\font\foo="DejaVu Sans" \foo  #1}%
+}
+
+
+\definecolor{crystal}{rgb}{0.1,0.9,0.1} %defining color
+\def\crystalname#1{%
+{\color{crystal}{{#1}}}
+}
+
+\definecolor{docente}{rgb}{0.4,0.6,0.9} %defining color
+\def\nomedocente#1{%
+{\color{docente}{{#1}}}
+}
+
+\def\highlight#1#2{%
+\textsc{\textbf{\color{#1}{#2}}}%
+}
+
+\usepackage[acronym]{glossaries}
+\makeglossaries
+%\newacronym{hcf}{HCF}{Highest Common Factor}
+%\newacronym{lcm}{LCM}{Lowest Common Multiple}
+\newacronym{xml}{XML}{Extensible Markup Language}
+\newacronym{osi}{OSI}{Open Systems Interconnection}
+\newacronym{ipv6}{IPv6}{Internet Protocol version 6}
+\newacronym{ipv4}{IPv4}{Internet Protocol version 4}
+\newacronym{RAID}{RAID}{Redundant Array of Indipendent disks}
+\newacronym{DBMS}{DBMS}{\textbf{D}ata\textbf{B}ase \textbf{M}anagement \textbf{S}ystem}
+\newacronym{ietf}{IETF}{Internet Engineering Task Force}
+\newacronym{ipsec}{IPsec}{Internet Protocol Security}
+\newacronym{sql}{SQL}{Structured Query Language}
+\newacronym{ascii}{ASCII}{American Standard Code for Information Interchange}
+\newacronym{utf8}{UTF-8}{\textbf{U}niversal Coded Character Set \textbf{T}ransformation \textbf{F}ormat \textbf{8}bit}
+\newacronym{la}{LA}{Learning Assistant}
+\newacronym{adt}{ADT}{Abstract Data Type}
+\newacronym{ISO}{ISO}{\textbf{I}nternational \textbf{O}rganization for \textbf{S}tandardization}
+\newacronym{gdpr}{GDPR}{\textbf{G}eneral \textbf{D}ata \textbf{P}rotection \textbf{R}egulation}
+\newacronym{BCM}{BCM}{\textbf{B}usiness \textbf{C}ontinuity \textbf{M}anagement}
+\newacronym{UI}{UI}{\textbf{U}ser \textbf{I}nterface}
+\newacronym{SAF}{SAF}{\textbf{S}ecure \textbf{A}ccess \textbf{F}ramework}
+\newacronym{DPM}{DPM}{\textbf{D}evice \textbf{P}olicy \textbf{M}anager}
+\newacronym{DD}{DD}{\textbf{D}ata \textbf{D}efinition AKA \textbf{D}isk \textbf{D}estroyer}
+\newacronym{IFP}{IFP}{\textbf{I}nteractive \textbf{F}lat \textbf{P}anel}
+\newacronym{FPS}{FPS}{\textbf{F}rames \textbf{P}er \textbf{S}econd}
+\newacronym{SOC}{SoC}{\textbf{S}ystem \textbf{O}n \textbf{C}hip}
+
+\newglossaryentry{SoC}
+{
+    name={\gls{SOC}},
+    description={A System on Chip (SoC) is an integrated circuit that integrates all components of a computer or other electronic system into a single chip. It may contain digital, analog, mixed-signal, and often radio-frequency functions—all on a single chip substrate.}
+}
+\newglossaryentry{fps}
+{
+    name={\gls{FPS}},
+    description={It is the number of frames displayed per second.}
+}
+\newglossaryentry{userdebug}{
+name={userdebug},
+description={A build variant of Android that is similar to the user build, but with additional debugging features enabled. This build variant is intended for developers and testers who need to debug their apps on a device.}
+}
+\newglossaryentry{ifp}{
+name={\gls{IFP}},
+description={Interactive Flat Panel. Most likely the Akhter TouchPanel we got shipped from China}
+}
+\newglossaryentry{binarywalk}{
+name={Binary Walk},
+description={A binary walk is a process of analyzing a binary file to determine its structure and contents. This can be done manually by examining the file in a hex editor or using automated tools to extract information from the file.}
+}
+\newglossaryentry{dagger2}
+{
+name={Dagger2},
+description={Dagger2 is a dependency injection framework for Android and Java. It is a compile-time framework that uses code generation to create the dependency injection code for you.}
+}
+\newglossaryentry{shizuku}
+{
+name={Shizuku},
+description={Shizuku is a free and open-source app that can be used to run commands as root on your Android device. It works by using a daemon to set up a socket that is used to communicate with a client app. The client app sends commands to the daemon, which then executes them as root and sends the output back to the client. That's the theory, anyway. In practice, I can't get it to work.}
+}
+\newglossaryentry{termux}
+{
+name={Termux},
+description={Termux is an Android terminal emulator and Linux environment app that works directly with no rooting or setup required. A minimal base system is installed automatically - additional packages are available using the APT package manager.}
+}
+\newglossaryentry{dpm}
+{
+name={\gls{DPM}},
+description={A Device Policy Manager (DPM) is a system or protocol that manages the policies and settings of a device. It can be used to enforce security policies, restrict access to certain features, and monitor usage. DPMs are often used in enterprise environments to ensure that devices are compliant with company policies and regulations.}
+}
+\newglossaryentry{navisettings}
+{
+name={com.xbh.navisetting},
+description={A system app designed to assist users in navigating their device by providing functions such as navigating back, returning to the home screen, accessing recent activities, displaying installed apps and selecting signal sources. Regrettably it also displays settings which is not what we want at Akhter.}
+}
+\newglossaryentry{ui}
+{
+name=\gls{UI},
+description={The User Interface (UI) is the part of an application or system that allows users to interact with it. This interaction can include user input, displaying information, and navigating within the application. The UI may include elements such as buttons, menus, windows, icons, and other components that facilitate user-friendly interactions with the system.}
+}
+\newglossaryentry{saf}
+{
+name={\gls{SAF}},
+description={The Secure Access Framework (SAF) is a system or protocol that enhances security by providing controlled and secure access to specific functions or data within an application or system. It often includes features like authentication, authorization, and encryption to protect sensitive information and ensure that only authorized users can access certain resources. SAF is commonly used in software applications and network systems to safeguard against unauthorized access and data breaches.}
+}
+
+\newglossaryentry{dd}
+{
+name={\gls{DD}},
+description={ The \textbf{dd} command is a command-line utility for Unix and Unix-like operating systems whose primary purpose is to convert and copy files. On Unix, device drivers for hardware (such as hard disk drives) and special device files (such as /dev/zero and /dev/random) appear in the file system just like normal files; \textbf{dd} can also read and/or write from/to these files, provided that function is implemented in their respective driver. That means, \textbf{dd} can be used for tasks such as backing up the boot sector of our TouchPanel's hard drive, and obtaining a fixed amount of random data from /dev/random. This could be useful for generating a password or encryption key to use with \textbf{dd} itself, or with another program like \textbf{gpg}. The dd program can also perform conversions on the data as it is copied, including byte order swapping and conversion to and from the ASCII and EBCDIC text encodings.}
+}
+
+
+\newglossaryentry{SolutionLifeCycle}
+{
+    name=Solution Life Cycle,
+    description={Set of stages software goes through from being an idea to implementation (discussed in \workplace{K1}\index{K1})}
+}
+\newglossaryentry{service-management-framework}
+{
+    name=Service Management Framework,
+    description={Essential activities of good service management as processes or practices (discussed in \workplace{K2}\index{K2})},
+    plural=Service Management Frameworks
+}
+\newglossaryentry{waterfall}
+{
+    name=waterfall,
+    description={Simple methodology followed to develop in an old fashion. Discussed in \workplace{K2}\index{K2}}
+}
+\newglossaryentry{agile}
+{
+    name=agile,
+    description={Incremental methodology to develop to adjust software to continuing changes in Requirements. Discussed in \workplace{K2}\index{K2}}
+}
+\newglossaryentry{bigdata}
+{
+    name=Big Data,
+    description={Environments of storage for non relational structured and unstructured data (discussed in \workplace{K34}\index{K34})}
+}
+\newglossaryentry{table}
+{
+    name=table,
+    description={Entity in which relational structured and unstructured databases store their data (discussed in \workplace{K33}\index{K33})},
+    plural=tables
+}
+\newglossaryentry{dbms}
+{
+    name=\gls{DBMS},
+    description={is covered in \workplace{K25}\index{K25}}
+}
+\newglossaryentry{android}
+{
+    name=Android,
+    description={Popular Operating System running on most of the devices(covered in \workplace{K24}\index{K24})}
+}
+\newglossaryentry{DevOps}
+{
+    name=DevOps,
+    description={approach discussed in \workplace{K3}\index{K3}}
+}
+
+\newglossaryentry{raid}
+{
+    name=RAID,
+    description={concept present in \workplace{K41}\index{K41}}
+}
+
+\newglossaryentry{class}
+{
+    name=class,
+    description={concept explained in Appendix \ref{appendix:class}. It's part of the \textsc{itsol} standards}
+}
+
+\newglossaryentry{object}
+{
+    name=object,
+    description={(see Appendix \ref{appendix:class}) It is an instance of a class}
+}
+
+\newglossaryentry{array}
+{
+    name=array,
+    description={DataType introduced in Appendix \ref{appendix:class}. It allows to store a raw of values of the same type}
+}
+
+\newglossaryentry{method}
+{
+    name=method,
+    description={A type of function introduced in Appendix \ref{appendix:class}. It's a function that belongs to a specific class}
+}
+
+\newglossaryentry{router}
+{
+    name=router,
+    description={concept present in \workplace{K11}\index{K11}},
+    plural=routers
+}
+
+\newglossaryentry{switch}
+{
+    name=switch,
+    description={concept present in \workplace{K11}\index{K11}},
+    plural=switches
+}
+
+\newglossaryentry{firewall}
+{
+    name=firewall,
+    description={a concept present in \workplace{K11}\index{K11}},
+    plural=firewalls
+}
+
+\newglossaryentry{tcp}
+{
+    name=TCP,
+    description={concept present in \workplace{K10}\index{K10}},
+    plural=TCP
+}
+
+\newglossaryentry{iso}
+{
+    name=\gls{ISO},
+    description={is an independent, non-governmental international organization with a membership of 167 \href{https://www.iso.org/members.html}{national standards bodies}}
+}
+
+\newglossaryentry{Java}
+{
+    name={Java},
+    description={a programming language discussed in \workplace{K30}\index{K30}}
+}
+
+\newglossaryentry{C++}
+{
+    name={C++},
+    description={a programming language discussed in \workplace{K30}\index{K30}}
+}
+
+\newglossaryentry{PHP}
+{
+    name={PHP},
+    description={a programming language discussed in \workplace{K30}\index{K30}}
+}
+
+\newglossaryentry{Python}
+{
+    name={Python},
+    description={a programming language discussed in \workplace{K30}\index{K30}}
+}
+
+\newglossaryentry{bcm}
+{
+    name=\gls{BCM},
+    description={discussed in \workplace{K16}\index{K16}}
+}
+
+
+
+
+
+
+
+%leaving intentionally blank
+
+\makeatletter
+    \def\cleardoublepage{\clearpage%
+        \if@twoside
+            \ifodd\c@page\else
+                \vspace*{\fill}
+                \hfill
+                \begin{center}
+                \emph{This page intentionally left blank}
+                \end{center}
+                \vspace{\fill}
+                \thispagestyle{empty}
+                \newpage
+                \if@twocolumn\hbox{}\newpage\fi
+            \fi
+        \fi
+    }
+\makeatother
+
+
+
+
+
+
+
+% questo è per fare i teoremi
+
+\usepackage[framemethod=TikZ]{mdframed}
+%% the following is commaon for all examples in mdframed manual
+\mdfsetup{skipabove=\topskip,skipbelow=\topskip}
+%%% upto here
+\newcounter{theo}[section]
+\newenvironment{theo}[1][]{%
+\stepcounter{theo}%
+\ifstrempty{#1}%
+ {\mdfsetup{%
+   frametitle={%
+    \tikz[baseline=(current bounding box.east),outer sep=0pt]
+    \node[anchor=east,rectangle,fill=blue!20]
+         {\strut Theorem~\thetheo};}}
+ }%
+{\mdfsetup{%
+  frametitle={%
+   \tikz[baseline=(current bounding box.east),outer sep=0pt]
+   \node[anchor=east,rectangle,fill=blue!20]
+        {\strut Theorem~\thetheo:~#1};}}%
+ }%
+\mdfsetup{innertopmargin=10pt,linecolor=blue!20,%
+       linewidth=2pt,topline=true,
+       frametitleaboveskip=\dimexpr-\ht\strutbox\relax,}
+   \begin{mdframed}[]\relax%
+}
+{\end{mdframed}}
+
+
+
+
+% altra dichiarazione di teoremi a se stante
+\usepackage[many]{tcolorbox}
+\newtcbtheorem[number within=section]{mytheo}{Theorem}%
+  {colback=white,colframe=Bluetto!50,fonttitle=\bfseries,
+   enhanced,
+   coltitle=Bluetto!75!black,
+   attach boxed title to top left=
+     {xshift=2ex,yshift=-2mm,yshifttext=-1mm},
+   boxed title style={colframe=Bluetto!50,
+     colback=Bluetto!50}}{th}
+
+
+
+% dichiarazione di definizione a se stante
+\newtcbtheorem[number within=section]{mydef}{Definition}%
+  {colback=white,colframe=Bluetto!50,fonttitle=\bfseries,
+   enhanced,
+   coltitle=LightBluetto!75!black,
+   attach boxed title to top left=
+     {xshift=2ex,yshift=-2mm,yshifttext=-1mm},
+   boxed title style={colframe=LightBluetto!50,
+     colback=LightBluetto!50}}{def}
+
+
+% dichiarazione di suggerimento
+\newtcbtheorem[number within=section]{myhint}{Hint}%
+  {colback=white,colframe=BrickRed!50,fonttitle=\bfseries,
+   enhanced,
+   coltitle=black!75!blue,
+   attach boxed title to top left=
+     {xshift=2ex,yshift=-2mm,yshifttext=-1mm},
+   boxed title style={colframe=BrickRed!50,
+     colback=BrickRed!50}}{hint}
+
+
+%###definizione hint()
+\def\hint#1#2#3#4#5{%
+\begin{wrapfigure}{#1}{#2}
+\begin{tikzpicture}[node distance=5mm,
+terminal/.style={
+rectangle,
+minimum size=6mm,
+rounded corners=3mm,
+very thick,
+draw=BrickRed!40,
+top color=BrickRed!30,
+bottom color=orange}]
+\node (norma) [terminal] at (0,0)
+{
+\begin{myhint}{#3}{#4}
+\suggerimento{{\color{orange!75!black}#5}}
+\end{myhint}
+};
+
+\node (azzurro)[xshift=-1.9ex,yshift=1.9ex] at (norma.south east)
+{
+\tikz \fill[orange, path fading=west] (2ex,2ex) circle (2ex);
+};
+
+\node (indaco) at (azzurro.center)
+{
+\tikz \fill[BrickRed!50] (1.8ex,1.8ex) circle (1.8ex);
+};
+
+\node (bianco) [xshift=-1ex,yshift=-0.3ex] at (norma.north east)
+{
+%\tikz \fill[white,opacity=.5] (1.8ex,1.8ex) circle (1.8ex);
+\tikz \fill[white] (1.8ex,1.8ex) circle (1.8ex);
+};
+
+\node (idea) [yshift=0ex,xshift=0.3ex] at (bianco.center)
+{
+\includegraphics[width=1cm]{./chapters/english/idea.png}
+};
+
+\node (arancione) at (indaco.center)
+{
+\tikz \fill[blue] (0.8ex,0.8ex) circle (0.8ex);
+};
+
+\node (giallo) at (arancione.center)
+{
+\tikz \fill[white] (0.6ex,0.6ex) circle (0.6ex);
+};
+
+\end{tikzpicture}
+\end{wrapfigure}
+}
+%###fine definizione hint()
+
+
+
+%#######
+%colori per la copertina
+
+\definecolor{nometecnico}{rgb}{0,0.4,0.4} %defining color
+\definecolor{lighttecnico}{rgb}{0.1,0.5,0.5} %defining color
+
+\def\primotitolo#1{%
+{\color{Goldenrod}\scalebox{3.2}{\textbf{\font\foo="Glitten" \foo  #1}}}%
+}
+
+\def\secondotitolo#1{%
+{\color{SteelBlue}\scalebox{3.4}{\textbf{\font\foo="Glitten" \foo  #1}}}%
+}
+
+\def\terzotitolo#1{%
+{\color{DarkGoldenrod}\scalebox{3.2}{\textbf{\font\foo="Glitten" \foo  #1}}}%
+}
+
+\def\quartotitolo#1{%
+{\color{DimGray}\scalebox{1.4}{\textbf{\font\foo="Glitten" \foo  #1}}}%
+}
+
+\def\quintotitolo#1{%
+{\color{Black}\scalebox{0.9}{\textbf{\font\foo="Glitten" \foo  #1}}}%
+}
+%####### fine colori per la copertina
+
+%#####capitolo idea
+\usepackage{titlesec}
+\newcommand{\chapnumfont}{
+  \fontsize{144}{0}
+  \selectfont
+}
+
+\colorlet{chapnumcol}{teal!55}
+
+\shadowcolor{black!70!white}
+\shadowoffset{0.7pt}
+
+\titleformat{\chapter}[display]
+{\bfseries}
+{\begin{tikzpicture}
+  \node[minimum width=\textwidth, text=teal!35, fill=teal!35, inner sep=1, outer sep=0, anchor=south ,xshift=-2cm] (rectinit) {\huge CHAPTER};
+  \node[minimum width=.6\textwidth, text=white, inner sep=1, outer sep=0, anchor=south west, text width=.75\textwidth, align=right] at (rectinit.south west) (chapname) {\huge \shadowtext{CHAPTER~~}};
+  \node[minimum width=.1\textwidth, inner sep=0, outer sep=0, anchor=south, text width=.1\textwidth, align=left, xshift=1cm] at (chapname.south east) {\chapnumfont\textcolor{chapnumcol}{\shadowtext{\thechapter}}};
+\end{tikzpicture}}
+{0pt}
+{\Huge \shadowtext}
+%#####fine capitolo idea
+
+
+
+
+
+
+
+
+%######lista contenuti per ogni capitolo su due linee
+\usepackage{minitoc}
+%######fine lista contenuti capitolo su due linee
+
+
+%annotation e ombre
+\usetikzlibrary{shapes,shadows,calc}
+\usetikzlibrary{mindmap}
+
+
+%########tabella bella fatta in tikz ma non si integra nelle tikzpicture grandi
+\usepackage{geometry}
+\usepackage{booktabs}
+
+\usetikzlibrary{calc, backgrounds}
+
+\newcommand\fancytab[4][]{%
+\vspace*{\baselineskip}\noindent
+\begin{minipage}{\linewidth}%
+\captionsetup[table]{format=plain,skip=0pt,indention=0pt, font={color=white}}
+\newlength{\mywidth}
+\settowidth{\mywidth}{~#3+0}
+#1
+\begin{tikzpicture}
+\node (around) {%
+#4
+};
+\begin{scope}[on background layer]
+\draw[pink, rounded corners, thick, fill=teal!10!pink!30,path fading=west] ($(around.north west)+(0,5mm)$) rectangle (around.south east);
+\node[fill=teal, rounded corners, anchor=west, yshift=0mm, xshift=0.5mm, text width=\mywidth+0cm] at ($(around.north west)+(0,5mm)$) {\captionof{table}{#3}};
+%\node[text=white, fill=pink] at (around.east) {$\clubsuit$};
+\end{scope}
+\end{tikzpicture}
+\label{tab:#2}
+\end{minipage}\par
+\vspace*{\baselineskip}
+\let\mywidth\relax % so we can reuse the same length
+}
+%########fine tabella bella fatta in tikz ma non si integra nelle tikzpicture grandi
+
+
+%##########includiamo i pdf nel documento
+\usepackage{pdfpages}
+%########## fine di --- includiamo i pdf nel documento 
+
+
+%#########funzione esempio a tre finestre
+\include{functions/tetraexample}
+%#########fine esempio a 3 finestre
+
+
+%##### immagini allineate con caption
+\newcommand\img[4]{%
+\hspace{1em}%
+\vtop{%
+\centering
+\sbox0{\includegraphics[height=#3]{#1}}%
+\hsize=\wd0
+\linewidth=\hsize
+\usebox{0}%
+
+\captionof{figure}{#2}\label{#4}%
+}%
+\ignorespaces}
+%#####FINE immagini allineate con caption
+
+\usepackage{fontawesome5}
+%\usepackage[sfdefault,light]{FiraSans}
+%\usepackage{anyfontsize}
+
+\newfontfamily{\FA}{FontAwesome5Free-Regular.otf}[Path = /Users/daniele/.local/share/fonts/] % Imposta il percorso corretto per il file del pacchetto FontAwesome5
+
+\usepackage{etoolbox}
+\newrobustcmd{\taishanIP}{192.168.11.207}
+
+
+\begin{document}
+%######### copertina
+
+\AddToShipoutPictureBG*{%
+  \AtPageUpperLeft{%
+    \raisebox{-\height}{%
+      \includegraphics[width=\paperwidth]{./cover1.jpg}%
+    }%
+  }
+}
+
+\pagenumbering{gobble}
+\renewcommand{\headrulewidth}{0pt}
+
+
+\begin{titlepage}
+    \begin{center}
+        \vspace*{9.6cm}
+%        \hspace{12cm}            
+        \Huge
+        \noindent\makebox[\linewidth][l]{\primotitolo{AirPlay}\hspace{10.2cm}}
+%        \vspace{0.5cm}
+        \LARGE
+%       \hspace{12.2cm}
+%       \secondotitolo{Software Developer}
+%        \noindent\makebox[\linewidth][l]{\secondotitolo{Cast}\hspace{10.2cm}}
+%        \vspace{1.5cm}
+            
+        \noindent\makebox[\linewidth][l]{\terzotitolo{Receiver}\hspace{10.2cm}}
+%        \today
+            
+%        \vfill
+        \vspace{1.5cm}        
+        \noindent\makebox[\linewidth][l]{\quartotitolo{Daniele Della Cioppa}\hspace{10.2cm}}
+        \noindent\makebox[\linewidth][l]{\quintotitolo{daniele.dellacioppa@gmail.com}\hspace{10.2cm}}
+         
+        \vspace{0.5cm}         
+        \noindent\makebox[\linewidth][l]{\quintotitolo{\today}\hspace{10.2cm}} 
+            
+    \end{center}
+\end{titlepage}
+%########## fine copertina
+
+
+\dominitoc% Initialization mini lista contenuti per capitolo
+\tableofcontents
+
+%\hypersetup{linkcolor=cyan}
+%\listoffigures
+%\hypersetup{linkcolor=blue}
+
+\hypersetup{
+     citecolor=gray,
+     urlcolor=blue,
+     linkcolor=blue,   %blue for DEBUG
+%     allcolors=gray
+     pdftitle={Level 3 I.T Solutions - A Top Down Approach},
+     pdfpagemode=FullScreen,
+     pdfcreator={Daniele Della Cioppa}
+}
+
+%\clearpage
+\cleardoublepage
+
+\pagenumbering{arabic}
+\renewcommand{\headrulewidth}{0.2pt}
+
+\part{DOCUMENTATION}
+\include{chapters/SettingUp}
+%\include{chapters/XMG6780A-V2}
+%\include{chapters/XMA311D2A-2-V1}
+%\include{chapters/user-interface}
+%\include{chapters/advanced-configuration}
+%\include{chapters/how-does-the-akhter-launcher-work}
+%\include{chapters/changing-boot-animation}
+%\include{chapters/test-plan}
+%\include{chapters/change-log}
+
+
+\part{APPENDICES}
+\appendix
+%\include{chapters/MyDevicePolicyManager}
+
+%\glsaddall
+\printglossary
+\printindex
+\end{document}

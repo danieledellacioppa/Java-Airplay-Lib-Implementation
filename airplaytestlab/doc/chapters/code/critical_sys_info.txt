@@ -1,0 +1,9 @@
+[ro.board.platform]: [t7]
+[ro.product.board]: [t7]
+[ro.product.board.type]: [XMA311D2A-2-V1]
+[ro.product.cpu.abi]: [arm64-v8a]
+[ro.product.cpu.abilist]: [arm64-v8a,armeabi-v7a,armeabi]
+[ro.product.cpu.abilist32]: [armeabi-v7a,armeabi]
+[ro.product.cpu.abilist64]: [arm64-v8a]
+[ro.product.device]: [t7_an400]
+

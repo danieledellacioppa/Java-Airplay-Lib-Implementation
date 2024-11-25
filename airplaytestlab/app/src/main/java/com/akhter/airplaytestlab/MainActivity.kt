@@ -1,112 +1,126 @@
 package com.akhter.airplaytestlab
 
 import android.os.Bundle
+import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.akhter.airplaytestlab.ui.theme.AirplaytestlabTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.graphics.toArgb
+import com.akhter.airplaytestlab.aplib.AirPlayBonjour
+import com.akhter.airplaytestlab.aplib.rtsp.AudioStreamInfo
+import com.akhter.airplaytestlab.aplib.rtsp.VideoStreamInfo
+import com.akhter.airplaytestlab.apserver.AirPlayServer
+import com.akhter.airplaytestlab.apserver.AirplayDataConsumer
+import com.akhter.airplaytestlab.compose.VideoDisplayComposable
+import com.akhter.airplaytestlab.tools.LogRepository
+import com.akhter.airplaytestlab.tools.LogRepository.isConnectionActive
+import com.akhter.airplaytestlab.ui.theme.BioAuthenticatorTheme
+import com.akhter.airplaytestlab.ui.theme.Gray40
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.net.InetAddress
-import javax.jmdns.JmDNS
-import javax.jmdns.ServiceInfo
 
-class MainActivity : ComponentActivity() {
-    private var jmDNS: JmDNS? = null
+class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
+
+
+    private val _serverState = MutableStateFlow(ServerState.STOPPED)
+    val serverState: StateFlow<ServerState> get() = _serverState
+
+    private var showLog = MutableStateFlow(true)
+
+    private val versionName = "1.0.0"
+    private val nameOnNetwork = "Airplay Test Lab"
+
+//    private val airPlayBonjour = AirPlayBonjour(nameOnNetwork)
+    private lateinit var airPlayServer: AirPlayServer
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        LogRepository.addLog("MainActivity", "onCreate")
+        window.navigationBarColor = Gray40.toArgb()
         setContent {
-            AirplaytestlabTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            BioAuthenticatorTheme {
+                val serverState = serverState.collectAsState()
+                val showLogState = showLog.collectAsState()
+
+                VideoDisplayComposable(
+                    this@MainActivity,
+                    isConnectionActive,
+                    versionName,
+                    nameOnNetwork,
+                    ::toggleServer,
+                    ::stopAudioPlayer,
+                    ::stopVideoPlayer,
+                    showLogState.value,
+                    ::toggleLogVisibility,
+                    serverState
+                )
             }
         }
         CoroutineScope(Dispatchers.IO).launch {
-            startBonjourService()
+//            airPlayBonjour.start()
+            airPlayServer = AirPlayServer(nameOnNetwork, 7000, 49152, airplayDataConsumer)
+            airPlayServer.start()
         }
     }
 
-    private fun startBonjourService() {
-        try {
-            // Ottieni l'indirizzo IP locale
-            val localIp = getLocalIpAddress()
-            if (localIp != null) {
-                jmDNS = JmDNS.create(InetAddress.getByName(localIp))
 
-                // Configura i dettagli del servizio
-                val serviceName = "AndroidScreencast"
-                val serviceType = "_airplay._tcp.local." // Tipo di servizio Bonjour
-                val port = 7000 // Porta del servizio
-                val txtRecord = mapOf(
-                    "deviceid" to "00:11:22:33:44:55", // MAC Address univoco
-                    "model" to "AppleTV3,2", // Modello emulato
-                    "features" to "0x5A7FFFF7,0x1E", // Specifica AirPlay
-                    "srcvers" to "220.68", // Versione del protocollo
-                )
+    private val airplayDataConsumer = object : AirplayDataConsumer {
 
-                // Crea e registra il servizio
-                val serviceInfo = ServiceInfo.create(serviceType, serviceName, port, 0, 0, txtRecord)
-                jmDNS?.registerService(serviceInfo)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        override fun onVideo(video: ByteArray?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onVideoFormat(videoStreamInfo: VideoStreamInfo?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onAudio(audio: ByteArray?) {
+            TODO("Not yet implemented")
+        }
+
+        override fun onAudioFormat(audioInfo: AudioStreamInfo?) {
+            TODO("Not yet implemented")
         }
     }
 
-    private fun getLocalIpAddress(): String? {
-        // Ottieni l'IP locale del dispositivo
-        // Semplice metodo per test; usa una libreria migliore per progetti più complessi
-        try {
-            val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
-            while (interfaces.hasMoreElements()) {
-                val iface = interfaces.nextElement()
-                val addresses = iface.inetAddresses
-                while (addresses.hasMoreElements()) {
-                    val address = addresses.nextElement()
-                    if (!address.isLoopbackAddress && address is java.net.Inet4Address) {
-                        return address.hostAddress
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return null
-    }
+
 
     override fun onDestroy() {
         super.onDestroy()
-        jmDNS?.unregisterAllServices()
-        jmDNS?.close()
+//        airPlayBonjour.stop()
+        airPlayServer.stop()
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    override fun surfaceCreated(holder: SurfaceHolder) {
+        TODO("Not yet implemented")
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AirplaytestlabTheme {
-        Greeting("Android")
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun surfaceDestroyed(holder: SurfaceHolder) {
+        TODO("Not yet implemented")
+    }
+
+    private fun toggleServer() {
+    TODO("Not yet implemented")
+    }
+
+    private fun stopAudioPlayer() {
+    TODO("Not yet implemented")
+    }
+
+    private fun stopVideoPlayer() {
+    TODO("Not yet implemented")
+    }
+
+    // Funzione per alternare la visibilità del log
+    fun toggleLogVisibility() {
+        showLog.value = !showLog.value
     }
 }

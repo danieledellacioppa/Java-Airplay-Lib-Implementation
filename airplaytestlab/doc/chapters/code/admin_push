@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Copy the android.software.device_admin.xml file to the device
+adb root
+adb remount
+adb push android.software.device_admin.xml /system/etc/permissions/android.software.device_admin.xml
+adb shell sync
+
+# Reboot the device
+adb reboot
+
