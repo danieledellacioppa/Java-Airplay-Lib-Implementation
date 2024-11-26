@@ -17,6 +17,7 @@ import com.github.serezhka.jap2server.internal.handler.session.SessionManager;
 
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
@@ -161,38 +162,43 @@ public class RTSPHandler extends ControlHandler {
             Log.d("RTSPHandler", "TEARDOWN: session.getAirPlay().isPairVerified() = " + session.getAirPlay().isPairVerified());
             Log.d("RTSPHandler", "TEARDOWN: request was " + request.content());
             LogRepository.INSTANCE.addLog(TAG, "TEARDOWN: request was " + request.content(), 'I');
-
-            MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()), request.method().toString());
-            if (mediaStreamInfo != null) {
-                switch (mediaStreamInfo.getStreamType()) {
-                    case AUDIO:
-                        session.stopAudio();
-                        workaround(ctx);
-                        LogRepository.INSTANCE.addLog(TAG, "Audio session stopped.", 'I');
-                        Log.d("RTSPHandler", "Audio session stopped.");
-                        break;
-                    case VIDEO:
-                        session.stopMirroring();
-                        workaround(ctx);
-                        LogRepository.INSTANCE.addLog(TAG, "Mirroring session stopped.", 'I');
-                        Log.d("RTSPHandler", "Mirroring session stopped.");
-                        break;
-                }
-            } else {
-                session.stopAudio();
-                session.stopMirroring();
-                workaround(ctx);
-                LogRepository.INSTANCE.addLog(TAG, "Audio and mirroring sessions stopped.", 'I');
-                Log.d("RTSPHandler", "Audio and mirroring sessions stopped.");
-                LogRepository.INSTANCE.setConnection(false);
-                LogRepository.INSTANCE.addLog(TAG, "setConnection(false)", 'I');
-            }
-            LogRepository.INSTANCE.addLog(TAG, "TEARDOWN response sent", 'I');
+//
+//            MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()), request.method().toString());
+//            if (mediaStreamInfo != null) {
+//                switch (mediaStreamInfo.getStreamType()) {
+//                    case AUDIO:
+//                        session.stopAudio();
+//                        workaround(ctx);
+//                        LogRepository.INSTANCE.addLog(TAG, "Audio session stopped.", 'I');
+//                        Log.d("RTSPHandler", "Audio session stopped.");
+//                        break;
+//                    case VIDEO:
+//                        session.stopMirroring();
+//                        workaround(ctx);
+//                        LogRepository.INSTANCE.addLog(TAG, "Mirroring session stopped.", 'I');
+//                        Log.d("RTSPHandler", "Mirroring session stopped.");
+//                        break;
+//                }
+//            } else {
+//                session.stopAudio();
+//                session.stopMirroring();
+//                workaround(ctx);
+//                LogRepository.INSTANCE.addLog(TAG, "Audio and mirroring sessions stopped.", 'I');
+//                Log.d("RTSPHandler", "Audio and mirroring sessions stopped.");
+//                LogRepository.INSTANCE.setConnection(false);
+//                LogRepository.INSTANCE.addLog(TAG, "setConnection(false)", 'I');
+//            }
+//            LogRepository.INSTANCE.addLog(TAG, "TEARDOWN response sent", 'I');
+            session.stopMirroring();
+            LogRepository.INSTANCE.setConnection(false);
+//            workaround(ctx);
+            closeFuture(ctx);
             return sendResponse(ctx, request, response);
         } else if ("POST".equals(request.method().toString()) && request.uri().equals("/audioMode")) {
             session.getAirPlay().printPlist("audioMode ",new ByteBufInputStream(request.content()));
 
             Log.d("RTSPHandler", "POST: session.getAirPlay().isPairVerified() = " + session.getAirPlay().isPairVerified());
+
             return sendResponse(ctx, request, response);
         }
         return false;
@@ -201,5 +207,12 @@ public class RTSPHandler extends ControlHandler {
     private void workaround( ChannelHandlerContext ctx) {
         ctx.channel().connect(ctx.channel().remoteAddress());
         LogRepository.INSTANCE.addLog(TAG, "CTX channel connected", 'I');
+    }
+
+    private void closeFuture(ChannelHandlerContext ctx) {
+        ctx.channel().closeFuture().addListener((ChannelFutureListener) future -> {
+            LogRepository.INSTANCE.addLog(TAG, "Channel closed", 'I');
+            Log.d(TAG, "Channel closed");
+        });
     }
 }
