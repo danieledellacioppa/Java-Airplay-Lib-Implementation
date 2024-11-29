@@ -37,7 +37,7 @@ import java.time.format.DateTimeFormatter
 fun VideoDisplayComposable(
     callback: SurfaceHolder.Callback,
     isConnectionActive: Boolean,
-    versionName: String,
+    versionName: String?,
     nameOnNetwork: String,
     onToggleServer: () -> Unit, // Funzione per attivare/disattivare il server
     onStopAudioPlayer: () -> Unit, // Funzione per fermare l'audio player

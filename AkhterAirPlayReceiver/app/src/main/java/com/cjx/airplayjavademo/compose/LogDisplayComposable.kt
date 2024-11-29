@@ -40,7 +40,7 @@ import com.cjx.airplayjavademo.ui.theme.Gray40
 
 @Composable
 fun LogDisplayComposable(
-    versionName: String,
+    versionName: String?,
     nameOnNetwork: String,
     onToggleServer: () -> Unit,  // Cambiato il tipo di ritorno per riflettere lo stato attuale
     onStopAudioPlayer: () -> Unit,

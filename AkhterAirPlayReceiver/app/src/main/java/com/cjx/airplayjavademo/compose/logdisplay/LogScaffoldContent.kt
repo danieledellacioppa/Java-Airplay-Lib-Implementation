@@ -47,7 +47,7 @@ fun LogScaffoldContent(
     it: PaddingValues,
     coroutineScope: CoroutineScope,
     scaffoldState: ScaffoldState,
-    versionName: String,
+    versionName: String?,
     nameOnNetwork: String,
     showButtons: Boolean,
     onToggleServer: () -> Unit,
@@ -132,7 +132,7 @@ fun LogScaffoldContent(
                                 )
                             )
                             Text(
-                                text = versionName,
+                                text = versionName?.let { " $it" } ?: " 1.0",
                                 style = TextStyle(
                                     fontSize = 10.sp,
                                     color = Color.Black.copy(alpha = 0.8f),
