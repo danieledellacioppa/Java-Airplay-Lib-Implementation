@@ -1,5 +1,6 @@
 package com.github.serezhka.jap2server.internal.handler.mirroring;
 
+import com.cjx.airplayjavademo.tools.LogRepository;
 import com.github.serezhka.jap2lib.AirPlay;
 import com.github.serezhka.jap2server.AirplayDataConsumer;
 import io.netty.buffer.ByteBuf;
@@ -119,6 +120,9 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
     }
 
     private void processVideo(byte[] payload) {
+
+        //is this being called when the connection fails?
+        LogRepository.INSTANCE.addLog("MirroringHandler", "Processing video data", 'I');
 
         // TODO One nalu per packet?
         int nalu_size = 0;

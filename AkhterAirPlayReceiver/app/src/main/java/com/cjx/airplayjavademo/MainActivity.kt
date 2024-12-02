@@ -221,6 +221,10 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private val airplayDataConsumer = object : AirplayDataConsumer {
         override fun onVideo(video: ByteArray) {
+
+            // this is slowing down the video playback but it is necessary to resolve the issue of the video not playing
+//            LogRepository.addLog(TAG, "onVideo called: ${video.size} bytes")
+
             // Imposta lo stato della connessione attiva quando i primi pacchetti video sono ricevuti
             if (!isConnectionActive) {
                 isConnectionActive = true
