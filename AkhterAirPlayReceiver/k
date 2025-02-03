@@ -1,0 +1,81 @@
+#!/bin/bash
+
+# Configurazione del nuovo dispositivo connesso via ID
+DEVICE_ID="an4009059505841100406"
+
+#BUILD_DATE=$(date -u +"%Y-%m-%dT%H-%MZ")
+#BUILD_CLASS_PATH="$HOME/akhter/Touchscreen-Lockdown/app/Neo-Launcher/Omega/src/com/akhter/aosplauncher/compose/pages/preferences/Build.kt"
+
+# Parametro di ingresso
+SKIP_INSTALLATION=false
+TARGET_MODE=""
+if [ "$1" == "no-install" ]; then
+  SKIP_INSTALLATION=true
+  TARGET_MODE="$2"
+fi
+
+# Verifica se JAVA_HOME è impostato
+if [ -z "$JAVA_HOME" ]; then
+  echo "JAVA_HOME non è impostato. Eseguo l'export..."
+  export JAVA_HOME="/home/daniele/android-studio/jbr"
+  export PATH="$PATH:$JAVA_HOME/bin"
+fi
+
+# Genera la classe Build.kt
+#cat > "$BUILD_CLASS_PATH" <<EOL
+#package com.akhter.aosplauncher.compose.pages.preferences
+#
+#object Build {
+#    const val DATE = "$BUILD_DATE"
+#}
+#EOL
+
+#echo "Classe Build.kt generata con successo in $BUILD_CLASS_PATH con data: $BUILD_DATE"
+
+# Imposta la data come variabile di ambiente per la build
+#export PRE_BUILD_DATE="$BUILD_DATE"
+#echo "Pre Build date set to: $PRE_BUILD_DATE"
+
+# Esegui la build con l'opzione per mostrare le deprecazioni
+./gradlew assembleDebug --warning-mode all # -PpreBuildDate="$PRE_BUILD_DATE"
+
+# Verifica il codice di uscita della build
+build_exit_code=$?
+
+if [ $build_exit_code -eq 0 ]; then
+  echo "Build completata con successo!"
+
+# Trova l'APK più recente che inizia con AkhterSecureLauncher
+  APK_PATH=$(find "$HOME/repo/Java-Airplay-Lib-Implementation/AkhterAirPlayReceiver/app/build/outputs/apk/debug" -maxdepth 1 -type f -name "app*.apk" | sort | tail -n 1)
+
+  if [ -n "$APK_PATH" ]; then
+    echo "APK trovata: $APK_PATH"
+
+    # Verifica se bisogna saltare l'installazione
+    if [ "$SKIP_INSTALLATION" = true ]; then
+      if [ "$TARGET_MODE" == "server" ]; then
+        # Rinomina l'APK e spostalo nella cartella destinazione
+        DEST_DIR="$HOME/akhter/Touchscreen-Lockdown/app/LauncherUpdateServer/apk_files"
+        mkdir -p "$DEST_DIR"
+        DEST_APK="$DEST_DIR/com.akhter.airplay.apk"
+        mv "$APK_PATH" "$DEST_APK"
+        echo "APK rinominata e spostata in: $DEST_APK"
+      else
+        echo "Installazione saltata su richiesta."
+      fi
+    else  
+        # Se la variabile di ambiente DEBUG è impostata su "true", esegui il debug
+        if [ "$DEBUG" = "true" ]; then
+          echo "Esecuzione in modalità debug..."
+          adb -s "$DEVICE_ID" shell am start -D -n "com.akhter.airplay/.MainActivity"
+        else
+          # Altrimenti, esegui l'installazione normale
+          adb -s "$DEVICE_ID" install -r "$APK_PATH"
+        fi
+    fi
+  else
+    echo "Errore: Nessun APK trovato con il prefisso app."
+  fi
+else
+  echo "La build ha avuto errori. L'installazione non verrà effettuata..."
+fi

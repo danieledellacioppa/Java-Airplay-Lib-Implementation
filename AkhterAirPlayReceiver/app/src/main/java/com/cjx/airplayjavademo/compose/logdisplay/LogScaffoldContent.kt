@@ -112,7 +112,7 @@ fun LogScaffoldContent(
                         verticalArrangement = Arrangement.Center
                     ){
                         Text(
-                            text = "..:Testing AirPlay Receiver:..",
+                            text = "AirPlay Receiver",
                             style = TextStyle(
                                 fontSize = 10.sp,
                                 color = Color.White.copy(alpha = 0.7f),
