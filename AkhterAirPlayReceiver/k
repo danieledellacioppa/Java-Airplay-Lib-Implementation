@@ -2,6 +2,7 @@
 
 # Configurazione del nuovo dispositivo connesso via ID
 DEVICE_ID="an4009059505841100406"
+MOBILE_ID="ZY3275T8QC"
 
 #BUILD_DATE=$(date -u +"%Y-%m-%dT%H-%MZ")
 #BUILD_CLASS_PATH="$HOME/akhter/Touchscreen-Lockdown/app/Neo-Launcher/Omega/src/com/akhter/aosplauncher/compose/pages/preferences/Build.kt"
@@ -60,6 +61,11 @@ if [ $build_exit_code -eq 0 ]; then
         DEST_APK="$DEST_DIR/com.akhter.airplay.apk"
         mv "$APK_PATH" "$DEST_APK"
         echo "APK rinominata e spostata in: $DEST_APK"
+
+        # Invia l'APK al dispositivo
+        REMOTE_PATH="/storage/emulated/0/Android/data/com.forteur.launcherupdateserverforandroid/files/apk_files/"
+        echo "Pushing APK to device at: $REMOTE_PATH"
+        adb -s "$MOBILE_ID" push "$DEST_APK" "$REMOTE_PATH"
       else
         echo "Installazione saltata su richiesta."
       fi
