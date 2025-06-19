@@ -212,7 +212,13 @@ class RTSP {
         // ios 音量 -30----》0由小变大
         int volume = -15;
         try {
-            volume = (int) Float.parseFloat(data.split(":")[1]);
+            String[] parts = data.split(":");
+            if (parts.length < 2) {
+                log.warn("Invalid volume parameter format: {}", data);
+                Log.w(TAG, "Invalid volume parameter format: " + data);
+                return volume;
+            }
+            volume = (int) Float.parseFloat(parts[1]);
         } catch (Exception e) {
             e.printStackTrace();
         }
