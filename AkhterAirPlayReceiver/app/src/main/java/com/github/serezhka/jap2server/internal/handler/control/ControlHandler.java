@@ -16,6 +16,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.rtsp.RtspResponseStatuses;
 import io.netty.handler.codec.rtsp.RtspVersions;
+import io.netty.util.ReferenceCountUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,20 @@ public abstract class ControlHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public final void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (!(msg instanceof FullHttpRequest && handleRequest(ctx, (FullHttpRequest) msg))) {
+        if (msg instanceof FullHttpRequest) {
+            FullHttpRequest request = (FullHttpRequest) msg;
+            boolean handled = false;
+            try {
+                handled = handleRequest(ctx, request);
+            } finally {
+                if (handled) {
+                    ReferenceCountUtil.release(request);
+                }
+            }
+            if (!handled) {
+                super.channelRead(ctx, msg);
+            }
+        } else {
             super.channelRead(ctx, msg);
         }
     }
