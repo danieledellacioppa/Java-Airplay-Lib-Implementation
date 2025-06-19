@@ -174,4 +174,14 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         dataConsumer.onVideo(spsPps);
     }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        headerBuf.release();
+        if (payload != null) {
+            payload.release();
+            payload = null;
+        }
+        super.handlerRemoved(ctx);
+    }
 }
