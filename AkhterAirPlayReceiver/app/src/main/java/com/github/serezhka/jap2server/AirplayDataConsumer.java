@@ -5,7 +5,7 @@ import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo;
 
 public interface AirplayDataConsumer {
 
-    void onVideo(byte[] video);
+    void onVideo(byte[] video, long timestampUs, long sequenceNumber, boolean codecConfig);
 
     void onVideoFormat(VideoStreamInfo videoStreamInfo);
 

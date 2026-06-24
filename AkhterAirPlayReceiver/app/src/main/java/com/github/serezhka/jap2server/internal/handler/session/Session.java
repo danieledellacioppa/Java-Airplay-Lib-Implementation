@@ -7,6 +7,8 @@ import com.github.serezhka.jap2lib.AirPlay;
 import com.github.serezhka.jap2server.internal.MirroringReceiver;
 
 public class Session {
+    private static final String TAG = "Session";
+    private static final long THREAD_JOIN_TIMEOUT_MS = 2000;
 
     private final AirPlay airPlay;
 
@@ -27,20 +29,20 @@ public class Session {
     public void setAirPlayReceiverThread(Thread airPlayReceiverThread, MirroringReceiver receiver) {
         this.airPlayReceiverThread = airPlayReceiverThread;
         this.mirroringReceiver = receiver;
-        Log.d("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread.getId());
-        LogRepository.INSTANCE.addLog("Session", "setAirPlayReceiverThread: " + airPlayReceiverThread.getId(), 'I');
+        Log.d(TAG, "setAirPlayReceiverThread: " + airPlayReceiverThread.getId());
+        LogRepository.INSTANCE.addLog(TAG, "setAirPlayReceiverThread: " + airPlayReceiverThread.getId(), 'I');
     }
 
     public void setAudioReceiverThread(Thread audioReceiverThread) {
         this.audioReceiverThread = audioReceiverThread;
-        Log.d("Session", "setAudioReceiverThread: " + audioReceiverThread.getId());
-        LogRepository.INSTANCE.addLog("Session", "setAudioReceiverThread: " + audioReceiverThread.getId(), 'I');
+        Log.d(TAG, "setAudioReceiverThread: " + audioReceiverThread.getId());
+        LogRepository.INSTANCE.addLog(TAG, "setAudioReceiverThread: " + audioReceiverThread.getId(), 'I');
     }
 
     public void setAudioControlServerThread(Thread audioControlServerThread) {
         this.audioControlServerThread = audioControlServerThread;
-        Log.d("Session", "setAudioControlServerThread: " + audioControlServerThread.getId());
-        LogRepository.INSTANCE.addLog("Session", "setAudioControlServerThread: " + audioControlServerThread.getId(), 'I');
+        Log.d(TAG, "setAudioControlServerThread: " + audioControlServerThread.getId());
+        LogRepository.INSTANCE.addLog(TAG, "setAudioControlServerThread: " + audioControlServerThread.getId(), 'I');
     }
 
     public boolean isMirroringActive() {
@@ -67,37 +69,48 @@ public class Session {
 //    }
 
     public void stopMirroring() {
+        LogRepository.INSTANCE.addLog(TAG, "stopMirroring requested. active=" + isMirroringActive(), 'I');
         if (mirroringReceiver != null) {
             mirroringReceiver.shutdown(); // Arresta MirroringReceiver in modo ordinato
             try {
                 if (airPlayReceiverThread != null && airPlayReceiverThread.isAlive()) {
-                    LogRepository.INSTANCE.addLog("Session", "Joining MirroringReceiver thread", 'I');
-                    airPlayReceiverThread.join(); // Assicura la chiusura completa del thread
-                    LogRepository.INSTANCE.addLog("Session", "MirroringReceiver thread joined", 'I');
+                    LogRepository.INSTANCE.addLog(TAG, "Joining MirroringReceiver thread id=" +
+                            airPlayReceiverThread.getId(), 'I');
+                    airPlayReceiverThread.join(THREAD_JOIN_TIMEOUT_MS);
+                    if (airPlayReceiverThread.isAlive()) {
+                        LogRepository.INSTANCE.addLog(TAG, "MirroringReceiver thread still alive after " +
+                                THREAD_JOIN_TIMEOUT_MS + "ms; interrupting.", 'W');
+                        airPlayReceiverThread.interrupt();
+                    } else {
+                        LogRepository.INSTANCE.addLog(TAG, "MirroringReceiver thread joined", 'I');
+                    }
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                Log.e("Session", "Interrupted while waiting for MirroringReceiver to terminate", e);
-                LogRepository.INSTANCE.addLog("Session", "Interrupted while waiting for MirroringReceiver to terminate", 'E');
+                Log.e(TAG, "Interrupted while waiting for MirroringReceiver to terminate", e);
+                LogRepository.INSTANCE.addLog(TAG, "Interrupted while waiting for MirroringReceiver to terminate", 'E');
             }
             mirroringReceiver = null;
             airPlayReceiverThread = null;
-            Log.d("Session", "MirroringReceiver stopped.");
+            Log.d(TAG, "MirroringReceiver stopped.");
 
             if (airPlay != null) {
                 airPlay.releaseDecryptors(); // Assicurati che questo metodo esista o modificalo come necessario
-                LogRepository.INSTANCE.addLog("Session", "airPlay.releaseDecryptors()", 'I');
+                LogRepository.INSTANCE.addLog(TAG, "airPlay.releaseDecryptors()", 'I');
             }
         }
     }
 
     public void stopAudio() {
+        LogRepository.INSTANCE.addLog(TAG, "stopAudio requested. active=" + isAudioActive(), 'I');
         if (audioReceiverThread != null) {
             audioReceiverThread.interrupt();
+            LogRepository.INSTANCE.addLog(TAG, "Audio receiver thread interrupted", 'I');
             audioReceiverThread = null;
         }
         if (audioControlServerThread != null) {
             audioControlServerThread.interrupt();
+            LogRepository.INSTANCE.addLog(TAG, "Audio control thread interrupted", 'I');
             audioControlServerThread = null;
         }
     }

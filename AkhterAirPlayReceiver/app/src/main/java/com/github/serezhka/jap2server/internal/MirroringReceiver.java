@@ -78,7 +78,9 @@ public class MirroringReceiver implements Runnable {
 
     @Override
     public void run() {
-        LogRepository.INSTANCE.addLog(TAG, "Starting mirroring receiver instance: " + threadID, 'I');
+        long actualThreadId = Thread.currentThread().getId();
+        LogRepository.INSTANCE.addLog(TAG, "Starting mirroring receiver instance=" + threadID +
+                " runThread=" + actualThreadId + " port=" + port, 'I');
 
         EventLoopGroup bossGroup = eventLoopGroup();
         EventLoopGroup workerGroup = eventLoopGroup();
@@ -99,66 +101,52 @@ public class MirroringReceiver implements Runnable {
                     .childOption(ChannelOption.SO_REUSEADDR, true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
             LogRepository.INSTANCE.addLog(TAG, "ServerBootstrap configured for mirroring receiver " + threadID,'I');
-        } catch (Exception e) {
-//            Log.e(TAG, "Error during ServerBootstrap configuration for mirroring receiver " + threadID, e);
-            LogRepository.INSTANCE.addLog(TAG, "Error during ServerBootstrap configuration for mirroring receiver " + threadID, 'E');
-            return;  // Termina l'esecuzione se c'è un errore di configurazione
-        }
 
-        // Blocco 2: Avvio del binding del server
-        try {
-                if (!isPortAvailable(port, MAX_RETRIES)) {
-                    Log.e(TAG, "Port " + port + " is already in use. Exiting...");
-                    LogRepository.INSTANCE.addLog(TAG, "Port " + port + " is already in use. Exiting...", 'E');
-                    return;
-                }
+            if (!isPortAvailable(port, MAX_RETRIES)) {
+                Log.e(TAG, "Port " + port + " is already in use. Exiting...");
+                LogRepository.INSTANCE.addLog(TAG, "Port " + port + " is already in use. Exiting...", 'E');
+                return;
+            }
 
-                // Avvia il server e attende la chiusura del canale
-                if (running){
-                    channelFuture = serverBootstrap.bind().sync();
-//                    Log.d(TAG, "Mirroring receiver threadID: " + threadID + " started on port: " + port);
-                    LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver threadID: " + threadID + " started on port: " + port, 'I');
-                }
+            if (running) {
+                channelFuture = serverBootstrap.bind().sync();
+                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver instance=" + threadID +
+                        " runThread=" + actualThreadId + " started on port=" + port, 'I');
+            }
 
-        } catch (InterruptedException e) {
-            Log.e(TAG, "Mirroring receiver " + threadID + " interrupted during bind", e);
-            Thread.currentThread().interrupt();
-            return;
-        } catch (Exception e) {
-            Log.e(TAG, "Error during bind for mirroring receiver " + threadID, e);
-            return;
-        }
-
-        // Blocco 3: Attesa della chiusura del canale
-        try {
-            // Attende che il canale si chiuda
-            if (running){
+            if (running && channelFuture != null) {
                 channelFuture.channel().closeFuture().sync();
-                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver:[" + threadID + "] channel closed", 'I');
+                LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver instance=" + threadID + " channel closed", 'I');
             }
         } catch (InterruptedException e) {
-            Log.e(TAG, "Mirroring receiver" + threadID + " interrupted during setup", e);
+            Log.e(TAG, "Mirroring receiver " + threadID + " interrupted", e);
+            LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver interrupted: " + e.getMessage(), 'W');
             Thread.currentThread().interrupt();
-            System.gc();
         } catch (Exception e) {
-                LogRepository.INSTANCE.addLog(TAG, "Error starting mirroring receiver" + threadID, 'E');
+            Log.e(TAG, "Mirroring receiver failed " + threadID, e);
+            LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver failed: " + e.getMessage(), 'E');
         } finally {
+            running = false;
             LogRepository.INSTANCE.setConnection(false);
-//            Log.w(TAG, "Mirroring receiver" + threadID + " shutting down...");
-//            closeChannel();
-//            // Chiusura sincrona dei gruppi di eventi con ritardo per liberare risorse
+            try {
+                if (channelFuture != null && channelFuture.channel().isOpen()) {
+                    channelFuture.channel().close().syncUninterruptibly();
+                    LogRepository.INSTANCE.addLog(TAG, "Mirroring receiver channel closed in cleanup for " + threadID, 'I');
+                }
+            } catch (Exception e) {
+                LogRepository.INSTANCE.addLog(TAG, "Error closing mirroring channel during cleanup: " + e.getMessage(), 'E');
+            }
             bossGroup.shutdownGracefully().syncUninterruptibly();
             workerGroup.shutdownGracefully().syncUninterruptibly();
-
-            LogRepository.INSTANCE.addLog(TAG, "EventLoopGroups for mirroring receiver " + threadID + " have been shut down.", 'I');
+            LogRepository.INSTANCE.addLog(TAG, "EventLoopGroups for mirroring receiver " + threadID +
+                    " have been shut down. runThread=" + actualThreadId, 'I');
         }
-
     }
 
     public void shutdown() {
         running = false;  // Interrompe il ciclo `sync` ordinatamente
         closeChannel();   // Chiude il canale in modo sicuro
-        LogRepository.INSTANCE.addLog(TAG, "Shutdown initiated for MirroringReceiver.", 'I');
+        LogRepository.INSTANCE.addLog(TAG, "Shutdown initiated for MirroringReceiver instance=" + threadID, 'I');
 
         // Log per verificare lo stato dei gruppi di eventi
         if (channelFuture != null && !channelFuture.channel().isOpen()) {
@@ -235,14 +223,14 @@ public class MirroringReceiver implements Runnable {
             try {
                 channelFuture.channel().close().sync();
 
-                LogRepository.INSTANCE.addLog(TAG, "channelFuture.channel() is connected", 'I');
+                LogRepository.INSTANCE.addLog(TAG, "Mirroring channel closed for receiver " + threadID, 'I');
             }
             catch (InterruptedException e) {
                 LogRepository.INSTANCE.addLog(TAG, "Failed to close the channel "+ threadID, 'E');
                 Thread.currentThread().interrupt();
             }
         } else {
-            LogRepository.INSTANCE.addLog(TAG, "Channel already closed or not open "+ threadID, 'W');
+            LogRepository.INSTANCE.addLog(TAG, "Channel already closed, not open, or not yet bound " + threadID, 'W');
         }
     }
 

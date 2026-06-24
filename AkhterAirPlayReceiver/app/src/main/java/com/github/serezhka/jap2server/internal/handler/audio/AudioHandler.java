@@ -20,6 +20,7 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final int RTP_HEADER_SIZE = 12;
     private static final int LOG_FIRST_PACKETS = 5;
     private static final int LOG_EVERY_PACKETS = 100;
+    private static final boolean AIRPLAY_AUDIO_FORWARDING_ENABLED = false;
 
     private final AirPlay airPlay;
     private final AirplayDataConsumer dataConsumer;
@@ -38,14 +39,15 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         this.airPlay = airPlay;
         this.dataConsumer = dataConsumer;
         this.audioStreamInfo = audioStreamInfo;
-        this.audioForwardingEnabled = isLpcm16(audioStreamInfo);
+        this.audioForwardingEnabled = AIRPLAY_AUDIO_FORWARDING_ENABLED && isLpcm16(audioStreamInfo);
         for (int i = 0; i < buffer.length; i++) {
             buffer[i] = new AudioPacket();
         }
         if (audioForwardingEnabled) {
             LogRepository.INSTANCE.addLog(TAG, "Audio RTP forwarding enabled for " + describeAudioInfo(audioStreamInfo), 'I');
         } else {
-            LogRepository.INSTANCE.addLog(TAG, "Audio RTP forwarding disabled. No decoder for " + describeAudioInfo(audioStreamInfo), 'W');
+            LogRepository.INSTANCE.addLog(TAG, "Audio RTP forwarding disabled. AirPlay audio is muted during video crash investigation. " +
+                    describeAudioInfo(audioStreamInfo), 'W');
         }
     }
 

@@ -82,6 +82,8 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var airPlayAudioEnabled = false
     private var audioPacketCount = 0
     private var droppedAudioPacketCount = 0
+    private var videoPacketCount = 0
+    private var droppedVideoCachePackets = 0
 
     private val _serverState = MutableStateFlow(ServerState.STOPPED)
     val serverState: StateFlow<ServerState> get() = _serverState
@@ -95,6 +97,9 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     companion object {
         private const val TAG = "MainActivity"
+        private const val MAX_VIDEO_CACHE_PACKETS = 120
+        private const val LOG_FIRST_PACKETS = 5
+        private const val LOG_EVERY_PACKETS = 100
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -200,6 +205,9 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     fun stopVideoPlayer() {
         mVideoPlayer?.stopPlayer()
         mVideoPlayer = null
+        synchronized(mVideoCacheList) {
+            mVideoCacheList.clear()
+        }
         LogRepository.addLog(TAG, "VideoPlayer stopped.")
     }
 
@@ -218,7 +226,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private val airplayDataConsumer = object : AirplayDataConsumer {
-        override fun onVideo(video: ByteArray) {
+        override fun onVideo(video: ByteArray, timestampUs: Long, sequenceNumber: Long, codecConfig: Boolean) {
 
             // this is slowing down the video playback but it is necessary to resolve the issue of the video not playing
 //            LogRepository.addLog(TAG, "onVideo called: ${video.size} bytes")
@@ -232,15 +240,42 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
             val nalPacket = NALPacket().apply {
                 nalData = video
+                pts = timestampUs
+                this.sequenceNumber = sequenceNumber
+                this.codecConfig = codecConfig
             }
 
-            if (mVideoPlayer != null) {
-                while (mVideoCacheList.isNotEmpty()) {
-                    mVideoPlayer?.addPacket(mVideoCacheList.removeFirst())
+            videoPacketCount++
+            if (shouldLogPacket(videoPacketCount)) {
+                LogRepository.addLog(TAG, "Received video packet seq=$sequenceNumber ptsUs=$timestampUs " +
+                        "bytes=${video.size} codecConfig=$codecConfig cacheSize=${mVideoCacheList.size}", 'I')
+            }
+
+            val videoPlayer = mVideoPlayer
+            if (videoPlayer != null && videoPlayer.isAvailable()) {
+                synchronized(mVideoCacheList) {
+                    while (mVideoCacheList.isNotEmpty() && videoPlayer.isAvailable()) {
+                        videoPlayer.addPacket(mVideoCacheList.removeFirst())
+                    }
                 }
-                mVideoPlayer?.addPacket(nalPacket)
+                videoPlayer.addPacket(nalPacket)
             } else {
-                mVideoCacheList.add(nalPacket)
+                if (videoPlayer != null && !videoPlayer.isAvailable()) {
+                    LogRepository.addLog(TAG, "VideoPlayer is unavailable; releasing before caching packet seq=$sequenceNumber", 'W')
+                    videoPlayer.stopPlayer()
+                    mVideoPlayer = null
+                }
+                synchronized(mVideoCacheList) {
+                    if (mVideoCacheList.size >= MAX_VIDEO_CACHE_PACKETS) {
+                        mVideoCacheList.removeFirst()
+                        droppedVideoCachePackets++
+                        if (shouldLogPacket(droppedVideoCachePackets)) {
+                            LogRepository.addLog(TAG, "Dropping cached video packet due to cache limit. " +
+                                    "dropped=$droppedVideoCachePackets cacheLimit=$MAX_VIDEO_CACHE_PACKETS", 'W')
+                        }
+                    }
+                    mVideoCacheList.add(nalPacket)
+                }
             }
         }
 
@@ -288,20 +323,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                         "bitDepth=${audioFormat.bitDepth} spf=${audioInfo.samplesPerFrame}", 'I')
             }
 
-            val newAudioPlayer = AudioPlayer.createForStreamInfo(audioInfo)
-            if (newAudioPlayer == null) {
-                disableAirPlayAudio("Unsupported or undecodable audio format: $audioInfo", 'W')
-                return
-            }
-
-            mAudioPlayer?.stopPlayer()
-            mAudioPlayer = newAudioPlayer.apply {
-                start()
-            }
-            airPlayAudioEnabled = true
-            audioPacketCount = 0
-            droppedAudioPacketCount = 0
-            LogRepository.addLog(TAG, "AirPlay audio enabled for negotiated LPCM stream.", 'I')
+            disableAirPlayAudio("Audio intentionally muted during video crash investigation: $audioInfo", 'W')
         }
     }
 
@@ -315,29 +337,51 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     private fun shouldLogAudioPacket(count: Int): Boolean {
-        return count <= 5 || count % 100 == 0
+        return shouldLogPacket(count)
+    }
+
+    private fun shouldLogPacket(count: Int): Boolean {
+        return count <= LOG_FIRST_PACKETS || count % LOG_EVERY_PACKETS == 0
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         Log.d(TAG, "surfaceCreated: Surface created.")
+        LogRepository.addLog(TAG, "surfaceCreated: surfaceValid=${holder.surface?.isValid}", 'I')
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        if (mVideoPlayer == null) {
-            LogRepository.addLog(TAG, "surfaceChanged: width:$width --- height:$height")
+        val surface = holder.surface
+        val surfaceValid = surface?.isValid == true
+        LogRepository.addLog(TAG, "surfaceChanged: width=$width height=$height format=$format surfaceValid=$surfaceValid", 'I')
+        if (!surfaceValid) {
+            LogRepository.addLog(TAG, "surfaceChanged ignored because Surface is invalid.", 'E')
+            return
+        }
+
+        if (mVideoPlayer == null || mVideoPlayer?.isAvailable() != true) {
+            mVideoPlayer?.stopPlayer()
             mVideoPlayer = VideoPlayer(holder.surface).apply {
                 start()
+            }
+            synchronized(mVideoCacheList) {
+                while (mVideoCacheList.isNotEmpty() && mVideoPlayer?.isAvailable() == true) {
+                    mVideoPlayer?.addPacket(mVideoCacheList.removeFirst())
+                }
             }
         }
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         Log.d(TAG, "surfaceDestroyed: Surface destroyed.")
+        LogRepository.addLog(TAG, "surfaceDestroyed: surfaceValid=${holder.surface?.isValid}", 'W')
 
         // Rilascia tutte le risorse legate al VideoPlayer
         if (mVideoPlayer != null) {
             mVideoPlayer?.release()  // Usa il nuovo metodo release per pulire le risorse
             mVideoPlayer = null  // Imposta a null il riferimento per indicare che non c'è un VideoPlayer attivo
+        }
+        synchronized(mVideoCacheList) {
+            mVideoCacheList.clear()
         }
     }
 

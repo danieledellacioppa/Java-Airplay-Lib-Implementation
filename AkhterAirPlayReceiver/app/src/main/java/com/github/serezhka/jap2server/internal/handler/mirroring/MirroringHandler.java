@@ -54,6 +54,11 @@ import org.slf4j.LoggerFactory;
 public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private static final Logger log = LoggerFactory.getLogger(MirroringHandler.class);
+    private static final String TAG = "MirroringHandler";
+    private static final int HEADER_SIZE = 128;
+    private static final int MAX_PAYLOAD_SIZE = 8 * 1024 * 1024;
+    private static final int LOG_FIRST_PACKETS = 5;
+    private static final int LOG_EVERY_PACKETS = 100;
 
     private final ByteBuf headerBuf = ByteBufAllocator.DEFAULT.ioBuffer(128, 128);
     private final AirPlay airPlay;
@@ -61,6 +66,9 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private MirroringHeader header;
     private ByteBuf payload;
+    private long payloadSequence;
+    private long videoSequence;
+    private long droppedPayloads;
 
     /**
      * Creates a new MirroringHandler instance with the specified AirPlay instance and data consumer.
@@ -75,88 +83,167 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) {
-        while (msg.isReadable()) {
+        try {
+            while (msg.isReadable()) {
 
-            if (header == null) {
-                msg.readBytes(headerBuf, Math.min(headerBuf.writableBytes(), msg.readableBytes()));
-                if (headerBuf.writableBytes() == 0) {
-                    header = new MirroringHeader(headerBuf);
-                    headerBuf.clear();
-                }
-            }
-
-            if (header != null && msg.readableBytes() > 0) {
-
-                if (payload == null || payload.writableBytes() == 0) {
-                    payload = ctx.alloc().directBuffer(header.getPayloadSize(), header.getPayloadSize());
-                }
-
-                msg.readBytes(payload, Math.min(payload.writableBytes(), msg.readableBytes()));
-
-                if (payload.writableBytes() == 0) {
-
-                    byte[] payloadBytes = new byte[header.getPayloadSize()];
-                    payload.readBytes(payloadBytes);
-
-                    try {
-                        if (header.getPayloadType() == 0) {
-                            airPlay.decryptVideo(payloadBytes);
-                            processVideo(payloadBytes);
-                        } else if (header.getPayloadType() == 1) {
-                            processSPSPPS(payload);
-                        } else {
-                            log.debug("Unhandled payload type: {}", header.getPayloadType());
+                if (header == null) {
+                    msg.readBytes(headerBuf, Math.min(headerBuf.writableBytes(), msg.readableBytes()));
+                    if (headerBuf.writableBytes() == 0) {
+                        header = new MirroringHeader(headerBuf);
+                        headerBuf.clear();
+                        payloadSequence++;
+                        logHeader();
+                        if (!isPayloadSizeValid(header.getPayloadSize())) {
+                            droppedPayloads++;
+                            closeAfterError(ctx, "Invalid mirroring payload size " + header.getPayloadSize(), null);
+                            resetPacketState();
+                            return;
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    }
+                }
+
+                if (header != null && msg.readableBytes() > 0) {
+
+                    if (payload == null) {
+                        payload = ctx.alloc().directBuffer(header.getPayloadSize(), header.getPayloadSize());
                     }
 
-                    payload.release();
-                    payload = null;
-                    header = null;
+                    msg.readBytes(payload, Math.min(payload.writableBytes(), msg.readableBytes()));
+
+                    if (payload.writableBytes() == 0) {
+
+                        byte[] payloadBytes = new byte[header.getPayloadSize()];
+                        payload.readBytes(payloadBytes);
+
+                        try {
+                            long timestampUs = System.nanoTime() / 1000L;
+                            if (header.getPayloadType() == 0) {
+                                airPlay.decryptVideo(payloadBytes);
+                                processVideo(payloadBytes, timestampUs);
+                            } else if (header.getPayloadType() == 1) {
+                                processSPSPPS(payloadBytes, timestampUs);
+                            } else {
+                                log.debug("Unhandled payload type: {}", header.getPayloadType());
+                                if (shouldLogPacket(payloadSequence)) {
+                                    LogRepository.INSTANCE.addLog(TAG, "Unhandled mirroring payload type=" +
+                                            header.getPayloadType() + " size=" + header.getPayloadSize(), 'W');
+                                }
+                            }
+                        } catch (Exception e) {
+                            droppedPayloads++;
+                            closeAfterError(ctx, "Mirroring payload processing failed at seq=" + payloadSequence +
+                                    " type=" + header.getPayloadType(), e);
+                            return;
+                        } finally {
+                            resetPacketState();
+                        }
+                    }
                 }
             }
+        } catch (Exception e) {
+            droppedPayloads++;
+            closeAfterError(ctx, "Mirroring read loop failed at seq=" + payloadSequence, e);
+            resetPacketState();
         }
     }
 
-    private void processVideo(byte[] payload) {
+    private void processVideo(byte[] payload, long timestampUs) {
+        long currentVideoSequence = ++videoSequence;
+        if (payload.length < 4) {
+            droppedPayloads++;
+            LogRepository.INSTANCE.addLog(TAG, "Dropping short video payload seq=" + currentVideoSequence +
+                    " bytes=" + payload.length, 'W');
+            return;
+        }
 
-        //is this being called when the connection fails?
-        LogRepository.INSTANCE.addLog("MirroringHandler", "Processing video data", 'I');
-
-        // TODO One nalu per packet?
-        int nalu_size = 0;
-        while (nalu_size < payload.length) {
-            int nc_len = (payload[nalu_size + 3] & 0xFF) | ((payload[nalu_size + 2] & 0xFF) << 8) | ((payload[nalu_size + 1] & 0xFF) << 16) | ((payload[nalu_size] & 0xFF) << 24);
-            log.debug("payload len: {}, nc_len: {}, nalu_type: {}", payload.length, nc_len, payload[4] & 0x1f);
-            if (nc_len > 0) {
-                payload[nalu_size] = 0;
-                payload[nalu_size + 1] = 0;
-                payload[nalu_size + 2] = 0;
-                payload[nalu_size + 3] = 1;
-                nalu_size += nc_len + 4;
-            }
-            if (payload.length - nc_len > 4) {
-                log.error("Decrypt error!");
+        int offset = 0;
+        int nalUnits = 0;
+        int firstNalType = -1;
+        while (offset < payload.length) {
+            if (payload.length - offset < 4) {
+                droppedPayloads++;
+                LogRepository.INSTANCE.addLog(TAG, "Dropping malformed video payload seq=" + currentVideoSequence +
+                        " trailingBytes=" + (payload.length - offset), 'E');
                 return;
             }
+
+            int nalLength = readIntBE(payload, offset);
+            int nalStart = offset + 4;
+            int nextOffset = nalStart + nalLength;
+            if (nalLength <= 0 || nextOffset > payload.length) {
+                droppedPayloads++;
+                LogRepository.INSTANCE.addLog(TAG, "Dropping malformed video payload seq=" + currentVideoSequence +
+                        " offset=" + offset +
+                        " nalLength=" + nalLength +
+                        " payloadBytes=" + payload.length, 'E');
+                return;
+            }
+
+            int nalType = payload[nalStart] & 0x1F;
+            if (firstNalType < 0) {
+                firstNalType = nalType;
+            }
+
+            payload[offset] = 0;
+            payload[offset + 1] = 0;
+            payload[offset + 2] = 0;
+            payload[offset + 3] = 1;
+            nalUnits++;
+            offset = nextOffset;
         }
 
-        dataConsumer.onVideo(payload);
+        if (shouldLogPacket(currentVideoSequence)) {
+            LogRepository.INSTANCE.addLog(TAG, "Forwarding video payload seq=" + currentVideoSequence +
+                    " ptsUs=" + timestampUs +
+                    " bytes=" + payload.length +
+                    " nalUnits=" + nalUnits +
+                    " firstNalType=" + firstNalType, 'I');
+        }
+
+        dataConsumer.onVideo(payload, timestampUs, currentVideoSequence, false);
     }
 
-    private void processSPSPPS(ByteBuf payload) {
-        payload.readerIndex(6);
+    private void processSPSPPS(byte[] payload, long timestampUs) {
+        long currentVideoSequence = ++videoSequence;
+        if (payload.length < 9) {
+            droppedPayloads++;
+            LogRepository.INSTANCE.addLog(TAG, "Dropping short SPS/PPS payload seq=" + currentVideoSequence +
+                    " bytes=" + payload.length, 'E');
+            return;
+        }
 
-        short spsLen = (short) payload.readUnsignedShort();
+        int offset = 6;
+        int spsLen = readUnsignedShortBE(payload, offset);
+        offset += 2;
+        if (spsLen <= 0 || offset + spsLen + 3 > payload.length) {
+            droppedPayloads++;
+            LogRepository.INSTANCE.addLog(TAG, "Dropping malformed SPS payload seq=" + currentVideoSequence +
+                    " spsLen=" + spsLen + " payloadBytes=" + payload.length, 'E');
+            return;
+        }
+
         byte[] sequenceParameterSet = new byte[spsLen];
-        payload.readBytes(sequenceParameterSet);
+        System.arraycopy(payload, offset, sequenceParameterSet, 0, spsLen);
+        offset += spsLen;
 
-        payload.skipBytes(1); // pps count
+        offset += 1; // pps count
+        if (offset + 2 > payload.length) {
+            droppedPayloads++;
+            LogRepository.INSTANCE.addLog(TAG, "Dropping malformed SPS/PPS payload seq=" + currentVideoSequence +
+                    " missing PPS length", 'E');
+            return;
+        }
 
-        short ppsLen = (short) payload.readUnsignedShort();
+        int ppsLen = readUnsignedShortBE(payload, offset);
+        offset += 2;
+        if (ppsLen <= 0 || offset + ppsLen > payload.length) {
+            droppedPayloads++;
+            LogRepository.INSTANCE.addLog(TAG, "Dropping malformed PPS payload seq=" + currentVideoSequence +
+                    " ppsLen=" + ppsLen + " payloadBytes=" + payload.length, 'E');
+            return;
+        }
         byte[] pictureParameterSet = new byte[ppsLen];
-        payload.readBytes(pictureParameterSet);
+        System.arraycopy(payload, offset, pictureParameterSet, 0, ppsLen);
 
         int spsPpsLen = spsLen + ppsLen + 8;
         log.info("SPS PPS length: {}", spsPpsLen);
@@ -172,12 +259,73 @@ public class MirroringHandler extends SimpleChannelInboundHandler<ByteBuf> {
         spsPps[spsLen + 7] = 1;
         System.arraycopy(pictureParameterSet, 0, spsPps, 8 + spsLen, ppsLen);
 
-        dataConsumer.onVideo(spsPps);
+        LogRepository.INSTANCE.addLog(TAG, "Forwarding SPS/PPS seq=" + currentVideoSequence +
+                " ptsUs=" + timestampUs +
+                " spsLen=" + spsLen +
+                " ppsLen=" + ppsLen, 'I');
+
+        dataConsumer.onVideo(spsPps, timestampUs, currentVideoSequence, true);
+    }
+
+    private boolean isPayloadSizeValid(int payloadSize) {
+        return payloadSize > 0 && payloadSize <= MAX_PAYLOAD_SIZE;
+    }
+
+    private void logHeader() {
+        if (shouldLogPacket(payloadSequence)) {
+            LogRepository.INSTANCE.addLog(TAG, "Mirroring header seq=" + payloadSequence +
+                    " type=" + header.getPayloadType() +
+                    " option=" + header.getPayloadOption() +
+                    " payloadSize=" + header.getPayloadSize() +
+                    " source=" + header.getWidthSource() + "x" + header.getHeightSource() +
+                    " display=" + header.getWidth() + "x" + header.getHeight(), 'I');
+        }
+    }
+
+    private boolean shouldLogPacket(long count) {
+        return count <= LOG_FIRST_PACKETS || count % LOG_EVERY_PACKETS == 0;
+    }
+
+    private int readIntBE(byte[] bytes, int offset) {
+        return ((bytes[offset] & 0xFF) << 24) |
+                ((bytes[offset + 1] & 0xFF) << 16) |
+                ((bytes[offset + 2] & 0xFF) << 8) |
+                (bytes[offset + 3] & 0xFF);
+    }
+
+    private int readUnsignedShortBE(byte[] bytes, int offset) {
+        return ((bytes[offset] & 0xFF) << 8) | (bytes[offset + 1] & 0xFF);
+    }
+
+    private void closeAfterError(ChannelHandlerContext ctx, String message, Exception e) {
+        if (e != null) {
+            log.error(message, e);
+            LogRepository.INSTANCE.addLog(TAG, message + ": " + e.getMessage(), 'E');
+        } else {
+            log.error(message);
+            LogRepository.INSTANCE.addLog(TAG, message, 'E');
+        }
+        if (ctx.channel().isOpen()) {
+            ctx.close();
+        }
+    }
+
+    private void resetPacketState() {
+        if (payload != null) {
+            payload.release();
+            payload = null;
+        }
+        header = null;
     }
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        headerBuf.release();
+        LogRepository.INSTANCE.addLog(TAG, "Handler removed. payloadSeq=" + payloadSequence +
+                " videoSeq=" + videoSequence +
+                " dropped=" + droppedPayloads, 'I');
+        if (headerBuf.refCnt() > 0) {
+            headerBuf.release();
+        }
         if (payload != null) {
             payload.release();
             payload = null;
