@@ -1,11 +1,9 @@
 package com.cjx.airplayjavademo.tools
 
-import android.media.MediaDrm.LogMessage
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
@@ -36,15 +34,18 @@ object LogRepository {
     // Aggiunge un log con orario
     fun addLog(tag: String, message: String, type: Char = 'I') {
         val currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-        val color = when (type) {
+        val normalizedType = type.uppercaseChar()
+        val color = when (normalizedType) {
+            'D' -> Color.LightGray
             'I' -> Color.White
             'W' -> Color.Yellow
             'E' -> Color.Red
             else -> Color.Black
         }
-        logMessages.add(LogEntry(currentTime, tag, message, MessageType(type.toString(), color)))
+        logMessages.add(LogEntry(currentTime, tag, message, MessageType(normalizedType.toString(), color)))
 
-        when (type) {
+        when (normalizedType) {
+            'D' -> Log.d(tag, message)
             'I' -> Log.i(tag, message)
             'W' -> Log.w(tag, message)
             'E' -> Log.e(tag, message)

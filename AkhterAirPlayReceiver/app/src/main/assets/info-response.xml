@@ -6,17 +6,17 @@
         <array>
             <dict>
                 <key>audioInputFormats</key>
-                <integer>67108860</integer>
+                <integer>16777216</integer>
                 <key>audioOutputFormats</key>
-                <integer>67108860</integer>
+                <integer>16777216</integer>
                 <key>type</key>
                 <integer>100</integer>
             </dict>
             <dict>
                 <key>audioInputFormats</key>
-                <integer>67108860</integer>
+                <integer>16777216</integer>
                 <key>audioOutputFormats</key>
-                <integer>67108860</integer>
+                <integer>16777216</integer>
                 <key>type</key>
                 <integer>101</integer>
             </dict>

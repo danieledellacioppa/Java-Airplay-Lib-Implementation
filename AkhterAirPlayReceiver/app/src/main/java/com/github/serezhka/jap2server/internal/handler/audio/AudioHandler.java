@@ -20,11 +20,13 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final int RTP_HEADER_SIZE = 12;
     private static final int LOG_FIRST_PACKETS = 5;
     private static final int LOG_EVERY_PACKETS = 100;
-    private static final boolean AIRPLAY_AUDIO_FORWARDING_ENABLED = false;
+    private static final boolean AIRPLAY_AUDIO_FORWARDING_ENABLED = true;
 
     private final AirPlay airPlay;
     private final AirplayDataConsumer dataConsumer;
     private final AudioStreamInfo audioStreamInfo;
+    private final boolean lpcmPassthrough;
+    private final AacAudioDecoder aacAudioDecoder;
 
     private final AudioPacket[] buffer = new AudioPacket[512];
 
@@ -39,14 +41,32 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         this.airPlay = airPlay;
         this.dataConsumer = dataConsumer;
         this.audioStreamInfo = audioStreamInfo;
-        this.audioForwardingEnabled = AIRPLAY_AUDIO_FORWARDING_ENABLED && isLpcm16(audioStreamInfo);
+        this.lpcmPassthrough = isLpcm16(audioStreamInfo);
+
+        AacAudioDecoder decoder = null;
+        boolean forwardingEnabled = AIRPLAY_AUDIO_FORWARDING_ENABLED && lpcmPassthrough;
+        if (AIRPLAY_AUDIO_FORWARDING_ENABLED && !forwardingEnabled && AacAudioDecoder.isSupported(audioStreamInfo)) {
+            try {
+                decoder = new AacAudioDecoder(audioStreamInfo);
+                forwardingEnabled = true;
+            } catch (Exception e) {
+                log.error("Failed to initialize AAC audio decoder", e);
+                LogRepository.INSTANCE.addLog(TAG, "Audio disabled: failed to initialize AAC decoder: " +
+                        e.getMessage(), 'E');
+            }
+        }
+        this.aacAudioDecoder = decoder;
+        this.audioForwardingEnabled = forwardingEnabled;
+
         for (int i = 0; i < buffer.length; i++) {
             buffer[i] = new AudioPacket();
         }
         if (audioForwardingEnabled) {
-            LogRepository.INSTANCE.addLog(TAG, "Audio RTP forwarding enabled for " + describeAudioInfo(audioStreamInfo), 'I');
+            String mode = lpcmPassthrough ? "LPCM passthrough" : "AAC MediaCodec decode";
+            LogRepository.INSTANCE.addLog(TAG, "Audio RTP forwarding enabled. mode=" + mode +
+                    " " + describeAudioInfo(audioStreamInfo), 'I');
         } else {
-            LogRepository.INSTANCE.addLog(TAG, "Audio RTP forwarding disabled. AirPlay audio is muted during video crash investigation. " +
+            LogRepository.INSTANCE.addLog(TAG, "Audio RTP forwarding disabled for unsupported stream. " +
                     describeAudioInfo(audioStreamInfo), 'W');
         }
     }
@@ -164,20 +184,25 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
                                 " ts=" + audioPacket.getTimestamp() +
                                 " bytes=" + audioPacket.getEncodedAudioSize(), 'I');
                     }
-                    airPlay.decryptAudio(audioPacket.getEncodedAudio(), audioPacket.getEncodedAudioSize());
-                    byte[] decodedPcm = Arrays.copyOfRange(audioPacket.getEncodedAudio(), 0, audioPacket.getEncodedAudioSize());
-                    packetsForwarded++;
-                    if (shouldLogPacket(packetsForwarded)) {
-                        LogRepository.INSTANCE.addLog(TAG, "Forwarding decrypted LPCM seq=" +
+                    byte[] decodedPcm = decryptAndDecode(audioPacket);
+                    if (decodedPcm.length > 0) {
+                        packetsForwarded++;
+                        if (shouldLogPacket(packetsForwarded)) {
+                            LogRepository.INSTANCE.addLog(TAG, "Forwarding decoded PCM seq=" +
+                                    audioPacket.getSequenceNumber() +
+                                    " ts=" + audioPacket.getTimestamp() +
+                                    " bytes=" + decodedPcm.length +
+                                    " firstBytes=" + firstBytesHex(decodedPcm, 8), 'I');
+                        }
+                        dataConsumer.onAudio(decodedPcm, audioPacket.getTimestamp(), audioPacket.getSequenceNumber());
+                    } else if (shouldLogPacket(packetsReceived)) {
+                        LogRepository.INSTANCE.addLog(TAG, "Decoded audio packet produced no PCM yet. seq=" +
                                 audioPacket.getSequenceNumber() +
-                                " ts=" + audioPacket.getTimestamp() +
-                                " bytes=" + decodedPcm.length +
-                                " firstBytes=" + firstBytesHex(decodedPcm, 8), 'I');
+                                " ts=" + audioPacket.getTimestamp(), 'D');
                     }
-                    dataConsumer.onAudio(decodedPcm, audioPacket.getTimestamp(), audioPacket.getSequenceNumber());
                 } catch (Exception e) {
                     packetsDropped++;
-                    audioForwardingEnabled = false;
+                    disableAudioForwarding();
                     log.error("Disabling audio after decrypt/forward failure", e);
                     LogRepository.INSTANCE.addLog(TAG, "Disabling audio after decrypt/forward failure: " +
                             e.getMessage(), 'E');
@@ -189,6 +214,31 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             }
         }
         return false;
+    }
+
+    private byte[] decryptAndDecode(AudioPacket audioPacket) throws Exception {
+        airPlay.decryptAudio(audioPacket.getEncodedAudio(), audioPacket.getEncodedAudioSize());
+        if (lpcmPassthrough) {
+            return Arrays.copyOfRange(audioPacket.getEncodedAudio(), 0, audioPacket.getEncodedAudioSize());
+        }
+        if (aacAudioDecoder == null) {
+            throw new IllegalStateException("No decoder available for " + describeAudioInfo(audioStreamInfo));
+        }
+        return aacAudioDecoder.decode(audioPacket.getEncodedAudio(), audioPacket.getEncodedAudioSize(),
+                audioPacket.getTimestamp());
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        disableAudioForwarding();
+        super.handlerRemoved(ctx);
+    }
+
+    private void disableAudioForwarding() {
+        audioForwardingEnabled = false;
+        if (aacAudioDecoder != null) {
+            aacAudioDecoder.close();
+        }
     }
 
     private boolean isLpcm16(AudioStreamInfo info) {

@@ -323,7 +323,21 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                         "bitDepth=${audioFormat.bitDepth} spf=${audioInfo.samplesPerFrame}", 'I')
             }
 
-            disableAirPlayAudio("Audio intentionally muted during video crash investigation: $audioInfo", 'W')
+            mAudioPlayer?.stopPlayer()
+            mAudioPlayer = null
+
+            val audioPlayer = AudioPlayer.createForStreamInfo(audioInfo)
+            if (audioPlayer == null) {
+                disableAirPlayAudio("Unsupported or failed audio stream: $audioInfo", 'E')
+                return
+            }
+
+            audioPacketCount = 0
+            droppedAudioPacketCount = 0
+            airPlayAudioEnabled = true
+            mAudioPlayer = audioPlayer
+            audioPlayer.start()
+            LogRepository.addLog(TAG, "AirPlay audio enabled for decoded PCM playback.", 'I')
         }
     }
 

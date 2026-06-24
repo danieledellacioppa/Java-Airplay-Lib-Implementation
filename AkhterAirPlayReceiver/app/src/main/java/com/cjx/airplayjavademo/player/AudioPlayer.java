@@ -136,7 +136,7 @@ public class AudioPlayer extends Thread {
         }
 
         try {
-            int written = mTrack.write(pcmPacket.data, 0, pcmPacket.data.length);
+            int written = writeFully(pcmPacket.data);
             if (written < 0) {
                 disableAudio("AudioTrack write failed with code " + written +
                         " packetBytes=" + pcmPacket.data.length +
@@ -159,6 +159,22 @@ public class AudioPlayer extends Thread {
             Log.e(TAG, "doPlay: error", e);
             disableAudio("AudioTrack exception: " + e.getMessage());
         }
+    }
+
+    private int writeFully(byte[] data) {
+        int totalWritten = 0;
+        while (totalWritten < data.length && !audioDisabled && !isStopThread) {
+            int written = mTrack.write(data, totalWritten, data.length - totalWritten,
+                    AudioTrack.WRITE_BLOCKING);
+            if (written < 0) {
+                return written;
+            }
+            if (written == 0) {
+                break;
+            }
+            totalWritten += written;
+        }
+        return totalWritten;
     }
 
     public void stopPlay() {
@@ -238,12 +254,22 @@ public class AudioPlayer extends Thread {
         }
 
         static AudioConfig from(AudioStreamInfo audioInfo) {
-            if (audioInfo == null || audioInfo.getCompressionType() != AudioStreamInfo.CompressionType.LPCM) {
+            if (audioInfo == null || audioInfo.getCompressionType() == null) {
                 return null;
             }
 
             AudioStreamInfo.AudioFormat streamFormat = audioInfo.getAudioFormat();
-            if (streamFormat == null || !streamFormat.isLinearPcm() || streamFormat.getBitDepth() != 16) {
+            if (streamFormat == null) {
+                return null;
+            }
+
+            AudioStreamInfo.CompressionType compressionType = audioInfo.getCompressionType();
+            if (compressionType == AudioStreamInfo.CompressionType.LPCM) {
+                if (!streamFormat.isLinearPcm() || streamFormat.getBitDepth() != 16) {
+                    return null;
+                }
+            } else if (compressionType != AudioStreamInfo.CompressionType.AAC &&
+                    compressionType != AudioStreamInfo.CompressionType.AAC_ELD) {
                 return null;
             }
 
