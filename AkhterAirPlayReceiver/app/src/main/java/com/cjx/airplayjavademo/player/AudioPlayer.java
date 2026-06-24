@@ -254,22 +254,12 @@ public class AudioPlayer extends Thread {
         }
 
         static AudioConfig from(AudioStreamInfo audioInfo) {
-            if (audioInfo == null || audioInfo.getCompressionType() == null) {
+            if (audioInfo == null || audioInfo.getCompressionType() != AudioStreamInfo.CompressionType.LPCM) {
                 return null;
             }
 
             AudioStreamInfo.AudioFormat streamFormat = audioInfo.getAudioFormat();
-            if (streamFormat == null) {
-                return null;
-            }
-
-            AudioStreamInfo.CompressionType compressionType = audioInfo.getCompressionType();
-            if (compressionType == AudioStreamInfo.CompressionType.LPCM) {
-                if (!streamFormat.isLinearPcm() || streamFormat.getBitDepth() != 16) {
-                    return null;
-                }
-            } else if (compressionType != AudioStreamInfo.CompressionType.AAC &&
-                    compressionType != AudioStreamInfo.CompressionType.AAC_ELD) {
+            if (streamFormat == null || !streamFormat.isLinearPcm() || streamFormat.getBitDepth() != 16) {
                 return null;
             }
 

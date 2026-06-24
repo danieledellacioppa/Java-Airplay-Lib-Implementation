@@ -91,6 +91,11 @@ public class RTSPHandler extends ControlHandler {
 
                         airplayDataConsumer.onAudioFormat(audioStreamInfo);
 
+                        if (AudioHandler.VIDEO_ONLY_MODE) {
+                            LogRepository.INSTANCE.addLog(TAG, "VIDEO_ONLY_MODE active: starting audio RTP/control " +
+                                    "servers only as a safe sink; no audio decrypt/decode/playback will run.", 'I');
+                        }
+
                         AudioHandler audioHandler = new AudioHandler(session.getAirPlay(), airplayDataConsumer, audioStreamInfo);
                         AudioReceiver audioReceiver = new AudioReceiver(audioHandler, this);
                         Thread audioReceiverThread = new Thread(audioReceiver);

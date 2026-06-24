@@ -25,6 +25,7 @@ import com.github.serezhka.jap2lib.rtsp.AudioStreamInfo
 import com.github.serezhka.jap2lib.rtsp.VideoStreamInfo
 import com.github.serezhka.jap2server.AirPlayServer
 import com.github.serezhka.jap2server.AirplayDataConsumer
+import com.github.serezhka.jap2server.internal.handler.audio.AudioHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -325,6 +326,11 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
             mAudioPlayer?.stopPlayer()
             mAudioPlayer = null
+
+            if (AudioHandler.VIDEO_ONLY_MODE) {
+                disableAirPlayAudio("VIDEO_ONLY_MODE active; accepting audio SETUP without playback: $audioInfo", 'I')
+                return
+            }
 
             val audioPlayer = AudioPlayer.createForStreamInfo(audioInfo)
             if (audioPlayer == null) {

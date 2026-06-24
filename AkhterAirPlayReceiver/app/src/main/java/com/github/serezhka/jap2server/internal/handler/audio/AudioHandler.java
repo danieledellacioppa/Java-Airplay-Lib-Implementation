@@ -20,7 +20,8 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final int RTP_HEADER_SIZE = 12;
     private static final int LOG_FIRST_PACKETS = 5;
     private static final int LOG_EVERY_PACKETS = 100;
-    private static final boolean AIRPLAY_AUDIO_FORWARDING_ENABLED = true;
+    public static final boolean VIDEO_ONLY_MODE = true;
+    private static final boolean AIRPLAY_AUDIO_FORWARDING_ENABLED = false;
 
     private final AirPlay airPlay;
     private final AirplayDataConsumer dataConsumer;
@@ -44,16 +45,11 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         this.lpcmPassthrough = isLpcm16(audioStreamInfo);
 
         AacAudioDecoder decoder = null;
-        boolean forwardingEnabled = AIRPLAY_AUDIO_FORWARDING_ENABLED && lpcmPassthrough;
-        if (AIRPLAY_AUDIO_FORWARDING_ENABLED && !forwardingEnabled && AacAudioDecoder.isSupported(audioStreamInfo)) {
-            try {
-                decoder = new AacAudioDecoder(audioStreamInfo);
-                forwardingEnabled = true;
-            } catch (Exception e) {
-                log.error("Failed to initialize AAC audio decoder", e);
-                LogRepository.INSTANCE.addLog(TAG, "Audio disabled: failed to initialize AAC decoder: " +
-                        e.getMessage(), 'E');
-            }
+        boolean forwardingEnabled = !VIDEO_ONLY_MODE && AIRPLAY_AUDIO_FORWARDING_ENABLED && lpcmPassthrough;
+        if (!VIDEO_ONLY_MODE && AIRPLAY_AUDIO_FORWARDING_ENABLED &&
+                !forwardingEnabled && AacAudioDecoder.isSupported(audioStreamInfo)) {
+            LogRepository.INSTANCE.addLog(TAG, "AAC/AAC-ELD MediaCodec decoding disabled by default. " +
+                    describeAudioInfo(audioStreamInfo), 'W');
         }
         this.aacAudioDecoder = decoder;
         this.audioForwardingEnabled = forwardingEnabled;
@@ -65,6 +61,10 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             String mode = lpcmPassthrough ? "LPCM passthrough" : "AAC MediaCodec decode";
             LogRepository.INSTANCE.addLog(TAG, "Audio RTP forwarding enabled. mode=" + mode +
                     " " + describeAudioInfo(audioStreamInfo), 'I');
+        } else if (VIDEO_ONLY_MODE) {
+            LogRepository.INSTANCE.addLog(TAG, "VIDEO_ONLY_MODE active: audio SETUP will be accepted, " +
+                    "RTP will be dropped before decrypt/decode/playback. " +
+                    describeAudioInfo(audioStreamInfo), 'I');
         } else {
             LogRepository.INSTANCE.addLog(TAG, "Audio RTP forwarding disabled for unsupported stream. " +
                     describeAudioInfo(audioStreamInfo), 'W');
@@ -120,6 +120,16 @@ public class AudioHandler extends SimpleChannelInboundHandler<DatagramPacket> {
                     " type=" + type +
                     " payload=" + payloadSize +
                     " forwarding=" + audioForwardingEnabled, 'I');
+        }
+
+        if (VIDEO_ONLY_MODE) {
+            packetsDropped++;
+            if (shouldLogPacket(packetsDropped)) {
+                LogRepository.INSTANCE.addLog(TAG, "VIDEO_ONLY_MODE dropping audio RTP before decrypt/decode. seq=" +
+                        curSeqNo + " ts=" + timestamp + " payload=" + payloadSize +
+                        " format=" + describeAudioInfo(audioStreamInfo), 'I');
+            }
+            return;
         }
 
         if (!audioForwardingEnabled) {
