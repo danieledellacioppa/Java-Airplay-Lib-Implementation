@@ -52,26 +52,6 @@ public class RTSPHandler extends ControlHandler {
         if (RtspMethods.SETUP.equals(request.method())) {
             LogRepository.INSTANCE.addLog(TAG, "RTSP SETUP request received", 'I');
 
-            // Controllo se una sessione di mirroring è già attiva
-            if (session.isMirroringActive()) {
-                Log.d(TAG, "Session already active. Terminating previous session...");
-                session.stopMirroring();  // Chiude eventuali sessioni aperte
-
-                // Attendi che il thread precedente termini
-                Thread previousThread = session.getAirPlayReceiverThread();
-                if (previousThread != null && previousThread.isAlive()) {
-                    try {
-                        Log.d(TAG, "Waiting for previous MirroringReceiver thread to terminate...");
-                        LogRepository.INSTANCE.addLog(TAG, "Waiting for previous MirroringReceiver thread to terminate...", 'W');
-                        previousThread.join();
-                    } catch (InterruptedException e) {
-                        Log.e(TAG, "Interrupted while waiting for previous MirroringReceiver thread to terminate", e);
-                        LogRepository.INSTANCE.addLog(TAG, "Interrupted while waiting for previous MirroringReceiver thread to terminate", 'E');
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            }
-
             MediaStreamInfo mediaStreamInfo = session.getAirPlay().rtspGetMediaStreamInfo(new ByteBufInputStream(request.content()), request.method().toString());
             LogRepository.INSTANCE.addLog(TAG, "Media stream info: " + mediaStreamInfo, 'I');
 
@@ -90,6 +70,12 @@ public class RTSPHandler extends ControlHandler {
                         log.info("Audio samples per frame is: {}", audioStreamInfo.getSamplesPerFrame());
 
                         airplayDataConsumer.onAudioFormat(audioStreamInfo);
+
+                        if (session.isAudioActive()) {
+                            LogRepository.INSTANCE.addLog(TAG, "Stopping previous audio sink before new audio SETUP. " +
+                                    "Mirroring/video session remains active.", 'I');
+                            session.stopAudio();
+                        }
 
                         if (AudioHandler.VIDEO_ONLY_MODE) {
                             LogRepository.INSTANCE.addLog(TAG, "VIDEO_ONLY_MODE active: starting audio RTP/control " +
@@ -119,6 +105,8 @@ public class RTSPHandler extends ControlHandler {
                         break;
 
                     case VIDEO:
+                        stopExistingMirroringForVideoSetup(session);
+
                         VideoStreamInfo videoStreamInfo = (VideoStreamInfo) mediaStreamInfo;
 
                         airplayDataConsumer.onVideoFormat(videoStreamInfo);
@@ -206,5 +194,16 @@ public class RTSPHandler extends ControlHandler {
     private void workaround( ChannelHandlerContext ctx) {
         ctx.channel().connect(ctx.channel().remoteAddress());
         LogRepository.INSTANCE.addLog(TAG, "CTX channel connected", 'I');
+    }
+
+    private void stopExistingMirroringForVideoSetup(Session session) {
+        if (!session.isMirroringActive()) {
+            return;
+        }
+
+        Log.d(TAG, "Video SETUP while mirroring is active. Terminating previous video session...");
+        LogRepository.INSTANCE.addLog(TAG, "Video SETUP while mirroring is active. " +
+                "Terminating previous video session only.", 'W');
+        session.stopMirroring();
     }
 }

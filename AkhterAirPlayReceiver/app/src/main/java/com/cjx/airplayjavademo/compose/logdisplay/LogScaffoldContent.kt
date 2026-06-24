@@ -53,6 +53,7 @@ fun LogScaffoldContent(
     onToggleServer: () -> Unit,
     onStopAudioPlayer: () -> Unit,
     onStopVideoPlayer: () -> Unit,
+    onExportLogs: () -> Unit,
     toggleLogVisibility: () -> Unit,
     serverState: State<ServerState>,
     showLog: Boolean
@@ -201,6 +202,11 @@ fun LogScaffoldContent(
                     id = "toggle_log",
                     label = "Toggle Log",
                     action = toggleLogVisibility
+                ),
+                ButtonInfo(
+                    id = "export_logs",
+                    label = "Export logs",
+                    action = onExportLogs
                 )
             )
 

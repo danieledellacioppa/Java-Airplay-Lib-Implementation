@@ -105,6 +105,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        LogRepository.initialize(this)
 
         val versionName = try {
             val packageInfo = packageManager.getPackageInfo(packageName, 0)
@@ -139,6 +140,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                     ::toggleServer,
                     ::stopAudioPlayer,
                     ::stopVideoPlayer,
+                    ::exportLogs,
                     showLog.value,
                     ::toggleLogVisibility,
                     serverState
@@ -210,6 +212,13 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
             mVideoCacheList.clear()
         }
         LogRepository.addLog(TAG, "VideoPlayer stopped.")
+    }
+
+    fun exportLogs() {
+        val adbPath = LogRepository.currentLogPathForAdb()
+        val message = "Logs saved continuously. Pull with: adb shell run-as com.akhter.airplay cat $adbPath > airplay_session.txt"
+        LogRepository.addLog(TAG, message, 'I')
+        Toast.makeText(this, "Logs saved: $adbPath", Toast.LENGTH_LONG).show()
     }
 
     // Funzione per alternare la visibilità del log

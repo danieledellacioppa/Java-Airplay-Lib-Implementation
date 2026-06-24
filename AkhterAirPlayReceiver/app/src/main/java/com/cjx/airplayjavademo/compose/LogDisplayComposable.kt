@@ -45,6 +45,7 @@ fun LogDisplayComposable(
     onToggleServer: () -> Unit,  // Cambiato il tipo di ritorno per riflettere lo stato attuale
     onStopAudioPlayer: () -> Unit,
     onStopVideoPlayer: () -> Unit,
+    onExportLogs: () -> Unit,
     showLog: Boolean,
     toggleLogVisibility: () -> Unit,
     serverState: State<ServerState>,
@@ -115,10 +116,10 @@ fun LogDisplayComposable(
             onToggleServer,
             onStopAudioPlayer,
             onStopVideoPlayer,
+            onExportLogs,
             toggleLogVisibility,
             serverState,
             showLog
         )
     }
 }
-

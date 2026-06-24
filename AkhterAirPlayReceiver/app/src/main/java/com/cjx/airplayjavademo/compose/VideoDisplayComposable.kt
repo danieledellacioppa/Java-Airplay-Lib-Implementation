@@ -8,6 +8,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +46,7 @@ fun VideoDisplayComposable(
     onToggleServer: () -> Unit, // Funzione per attivare/disattivare il server
     onStopAudioPlayer: () -> Unit, // Funzione per fermare l'audio player
     onStopVideoPlayer: () -> Unit, // Funzione per fermare il video player
+    onExportLogs: () -> Unit,
     showLog: Boolean, // Nuovo parametro per la visibilità del log
     toggleLogVisibility: () -> Unit, // Funzione per alternare la visibilità
     serverState: State<ServerState> // Stato del server
@@ -90,6 +95,22 @@ fun VideoDisplayComposable(
                     fontSize = 16.sp
                 )
             )
+
+            Button(
+                onClick = onExportLogs,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
+                    .size(96.dp, 32.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Black.copy(alpha = 0.6f),
+                    contentColor = Color.White
+                ),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(2.dp),
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text("Export logs", fontSize = 8.sp)
+            }
         } else {
             LogDisplayComposable(
                 versionName,
@@ -97,6 +118,7 @@ fun VideoDisplayComposable(
                 onToggleServer,
                 onStopAudioPlayer,
                 onStopVideoPlayer,
+                onExportLogs,
                 showLog,
                 toggleLogVisibility,
                 serverState
