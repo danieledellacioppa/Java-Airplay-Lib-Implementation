@@ -9,7 +9,7 @@ public interface AirplayDataConsumer {
 
     void onVideoFormat(VideoStreamInfo videoStreamInfo);
 
-    void onAudio(byte[] audio);
+    void onAudio(byte[] audio, long timestamp, int sequenceNumber);
 
     void onAudioFormat(AudioStreamInfo audioInfo);
 }

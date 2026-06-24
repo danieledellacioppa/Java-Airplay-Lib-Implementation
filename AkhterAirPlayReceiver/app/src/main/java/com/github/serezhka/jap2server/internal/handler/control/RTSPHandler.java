@@ -91,7 +91,7 @@ public class RTSPHandler extends ControlHandler {
 
                         airplayDataConsumer.onAudioFormat(audioStreamInfo);
 
-                        AudioHandler audioHandler = new AudioHandler(session.getAirPlay(), airplayDataConsumer);
+                        AudioHandler audioHandler = new AudioHandler(session.getAirPlay(), airplayDataConsumer, audioStreamInfo);
                         AudioReceiver audioReceiver = new AudioReceiver(audioHandler, this);
                         Thread audioReceiverThread = new Thread(audioReceiver);
                         session.setAudioReceiverThread(audioReceiverThread);

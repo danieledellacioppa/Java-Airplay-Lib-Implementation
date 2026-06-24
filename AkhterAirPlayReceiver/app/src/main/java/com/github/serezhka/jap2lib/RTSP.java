@@ -136,10 +136,16 @@ class RTSP {
             if (rtspSetup.containsKey("streams")) {
                 // Assumiamo che ci sia solo un stream info per richiesta RTSP SETUP
                 HashMap<String, Object> stream = (HashMap<String, Object>) ((Object[]) rtspSetup.get("streams").toJavaObject())[0];
-                int type = (int) stream.get("type");
+                Long typeCode = numberAsLong(stream.get("type"));
+
+                if (typeCode == null) {
+                    log.error("RTSP setup stream missing numeric type: {}", stream);
+                    LogRepository.INSTANCE.addLog(TAG, "RTSP setup stream missing numeric type: " + stream, 'E');
+                    return null;
+                }
 
                 // Controlla il tipo di stream (video o audio)
-                switch (type) {
+                switch (typeCode.intValue()) {
                     case 110:  // Video stream
                         log.info("Video stream detected");
 
@@ -156,24 +162,46 @@ class RTSP {
                         // Costruzione delle informazioni audio dal payload
                         AudioStreamInfo.AudioStreamInfoBuilder builder = new AudioStreamInfo.AudioStreamInfoBuilder();
                         if (stream.containsKey("ct")) {
-                            int compressionType = (int) stream.get("ct");
-                            builder.compressionType(AudioStreamInfo.CompressionType.fromCode(compressionType));
+                            Long compressionType = numberAsLong(stream.get("ct"));
+                            builder.compressionTypeCode(compressionType);
+                            if (compressionType != null) {
+                                try {
+                                    builder.compressionType(AudioStreamInfo.CompressionType.fromCode(compressionType));
+                                } catch (IllegalArgumentException e) {
+                                    log.warn("Unknown audio compression type: {}", compressionType);
+                                    LogRepository.INSTANCE.addLog(TAG, "Unknown audio compression type: " + compressionType, 'W');
+                                }
+                            }
                             log.info("Audio compressionType: {}", compressionType);
+                            LogRepository.INSTANCE.addLog(TAG, "Audio compressionType: " + compressionType, 'I');
                         }
                         if (stream.containsKey("audioFormat")) {
-                            long audioFormatCode = (int) stream.get("audioFormat");  // FIXME: Verifica se int o long
-                            builder.audioFormat(AudioStreamInfo.AudioFormat.fromCode(audioFormatCode));
+                            Long audioFormatCode = numberAsLong(stream.get("audioFormat"));
+                            builder.audioFormatCode(audioFormatCode);
+                            if (audioFormatCode != null) {
+                                try {
+                                    builder.audioFormat(AudioStreamInfo.AudioFormat.fromCode(audioFormatCode));
+                                } catch (IllegalArgumentException e) {
+                                    log.warn("Unknown audio format: {}", audioFormatCode);
+                                    LogRepository.INSTANCE.addLog(TAG, "Unknown audio format: " + audioFormatCode, 'W');
+                                }
+                            }
                             log.info("Audio format: {}", audioFormatCode);
+                            LogRepository.INSTANCE.addLog(TAG, "Audio format: " + audioFormatCode, 'I');
                         }
                         if (stream.containsKey("spf")) {
-                            int samplesPerFrame = (int) stream.get("spf");
-                            builder.samplesPerFrame(samplesPerFrame);
+                            Long samplesPerFrame = numberAsLong(stream.get("spf"));
+                            if (samplesPerFrame != null) {
+                                builder.samplesPerFrame(samplesPerFrame.intValue());
+                            }
                             log.info("Samples per frame: {}", samplesPerFrame);
+                            LogRepository.INSTANCE.addLog(TAG, "Audio samples per frame: " + samplesPerFrame, 'I');
                         }
                         return builder.build();
 
                     default:
-                        log.error("Unknown stream type: {}", type);
+                        log.error("Unknown stream type: {}", typeCode);
+                        LogRepository.INSTANCE.addLog(TAG, "Unknown stream type: " + typeCode, 'E');
                         break;
                 }
             } else {
@@ -188,6 +216,13 @@ class RTSP {
             log.error("Failed to parse RTSP setup payload: {}", e.getMessage(), e);
         }
 
+        return null;
+    }
+
+    private Long numberAsLong(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
         return null;
     }
 

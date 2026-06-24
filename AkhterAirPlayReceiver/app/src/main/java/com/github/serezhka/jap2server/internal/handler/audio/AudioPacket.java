@@ -82,6 +82,10 @@ public class AudioPacket {
         return encodedAudioSize;
     }
 
+    public int getEncodedAudioCapacity() {
+        return encodedAudio.length;
+    }
+
     public byte[] getEncodedAudio() {
         return encodedAudio;
     }

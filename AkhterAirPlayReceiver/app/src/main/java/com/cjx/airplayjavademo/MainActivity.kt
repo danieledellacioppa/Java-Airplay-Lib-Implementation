@@ -79,6 +79,9 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     private var mVideoPlayer: VideoPlayer? = null
     private var mAudioPlayer: AudioPlayer? = null
     private val mVideoCacheList = LinkedList<NALPacket>()
+    private var airPlayAudioEnabled = false
+    private var audioPacketCount = 0
+    private var droppedAudioPacketCount = 0
 
     private val _serverState = MutableStateFlow(ServerState.STOPPED)
     val serverState: StateFlow<ServerState> get() = _serverState
@@ -136,9 +139,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
                 )
             }
         }
-        mAudioPlayer = AudioPlayer().apply {
-            start()
-        }
+        LogRepository.addLog(TAG, "AirPlay audio will stay disabled until a supported LPCM format is negotiated.", 'I')
 
         airPlayServer = AirPlayServer(nameOnNetwork, 7000, 49152, airplayDataConsumer)
         startServer()
@@ -193,9 +194,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
     }
 
     fun stopAudioPlayer() {
-        mAudioPlayer?.stopPlayer()
-        mAudioPlayer = null
-        LogRepository.addLog(TAG, "AudioPlayer stopped.")
+        disableAirPlayAudio("AudioPlayer stopped.")
     }
 
     fun stopVideoPlayer() {
@@ -212,8 +211,7 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onStop() {
         super.onStop()
-        mAudioPlayer?.stopPlay()
-        mAudioPlayer = null
+        disableAirPlayAudio("Activity stopped.", 'I')
         mVideoPlayer?.stopPlayer()
         mVideoPlayer = null
         airPlayServer.stop()
@@ -250,23 +248,74 @@ class MainActivity : ComponentActivity(), SurfaceHolder.Callback {
             // Potresti usare anche questo punto per rilevare la connessione
         }
 
-        override fun onAudio(audio: ByteArray) {
+        override fun onAudio(audio: ByteArray, timestamp: Long, sequenceNumber: Int) {
             // Anche qui puoi impostare lo stato della connessione
             if (!isConnectionActive) {
                 isConnectionActive = true
                 Log.d(TAG, "Connection active: received first audio packet.")
             }
 
+            audioPacketCount++
+            if (!airPlayAudioEnabled || mAudioPlayer == null) {
+                droppedAudioPacketCount++
+                if (shouldLogAudioPacket(droppedAudioPacketCount)) {
+                    LogRepository.addLog(TAG, "Dropping AirPlay audio packet because playback is disabled. " +
+                            "seq=$sequenceNumber pts=$timestamp bytes=${audio.size} dropped=$droppedAudioPacketCount", 'W')
+                }
+                return
+            }
+
+            if (shouldLogAudioPacket(audioPacketCount)) {
+                LogRepository.addLog(TAG, "Received decrypted PCM audio packet seq=$sequenceNumber " +
+                        "pts=$timestamp bytes=${audio.size}", 'I')
+            }
+
             val pcmPacket = PCMPacket().apply {
                 data = audio
+                pts = timestamp
             }
 
             mAudioPlayer?.addPacker(pcmPacket)
         }
 
         override fun onAudioFormat(audioInfo: AudioStreamInfo) {
-            // Implement if needed
+            LogRepository.addLog(TAG, "AirPlay audio format negotiated: $audioInfo", 'I')
+
+            val audioFormat = audioInfo.audioFormat
+            if (audioFormat != null) {
+                LogRepository.addLog(TAG, "Audio format details: compression=${audioInfo.compressionType} " +
+                        "sampleRate=${audioFormat.sampleRate} channels=${audioFormat.channels} " +
+                        "bitDepth=${audioFormat.bitDepth} spf=${audioInfo.samplesPerFrame}", 'I')
+            }
+
+            val newAudioPlayer = AudioPlayer.createForStreamInfo(audioInfo)
+            if (newAudioPlayer == null) {
+                disableAirPlayAudio("Unsupported or undecodable audio format: $audioInfo", 'W')
+                return
+            }
+
+            mAudioPlayer?.stopPlayer()
+            mAudioPlayer = newAudioPlayer.apply {
+                start()
+            }
+            airPlayAudioEnabled = true
+            audioPacketCount = 0
+            droppedAudioPacketCount = 0
+            LogRepository.addLog(TAG, "AirPlay audio enabled for negotiated LPCM stream.", 'I')
         }
+    }
+
+    private fun disableAirPlayAudio(reason: String, logType: Char = 'W') {
+        airPlayAudioEnabled = false
+        droppedAudioPacketCount = 0
+        audioPacketCount = 0
+        mAudioPlayer?.stopPlayer()
+        mAudioPlayer = null
+        LogRepository.addLog(TAG, "AirPlay audio disabled: $reason", logType)
+    }
+
+    private fun shouldLogAudioPacket(count: Int): Boolean {
+        return count <= 5 || count % 100 == 0
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
